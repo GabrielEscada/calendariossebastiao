@@ -1,26 +1,25 @@
 {
-  "background_color": "#f3f1b3",
-  "dir": "ltr",
+  "name": "Casa de São Sebastião",
+  "short_name": "Casa São Seb",
+  "description": "Sistema de reservas da Casa de São Sebastião",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "name": "Calendário da casa de São Sebastião",
-  "orientation": "any",
-  "scope": "/",
-  "short_name": "Calendário Praia",
-  "start_url": "/https://script.google.com/macros/s/AKfycbwUk61O0zFkBJFIungH8WhZ15e8XT_F1kBR8QfMwKByXlH-GjwyGQjHCx_ITcyxIZE2kw/exec",
-  "theme_color": "#6a6afa",
+  "background_color": "#ffffff",
+  "theme_color": "#1e90ff",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://script.google.com/favicon.ico",
-      "type": "image/x-icon",
-      "sizes": "32x32",
-      "isSquare": true,
-      "isPng": false,
-      "isWebp": false,
-      "isJpg": false,
-      "width": 32,
-      "is512x512": false,
-      "is256x256": false,
-      "is192x192": false
+      "src": "./Imagens/Icone.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./Imagens/Icone.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
