@@ -1,0 +1,3414 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <base target="_top">
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
+  <!-- ========================================= -->
+  <!-- METADADOS PARA PWA -->
+  <!-- ========================================= -->
+  <meta name="theme-color" content="#1e90ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Casa São Sebastião">
+  
+  <!-- Link para o manifest.json -->
+  <link rel="manifest" href="https://script.google.com/macros/s/AKfycbz37mw-ccz0zGZGVGEY2gbqarYlcKi1BJlVpfF5l10O2DHg3tA-XmKZsYwiyaQgZyds4A/exec?manifest=1">
+  
+  <!-- Ícones para iOS -->
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/GabrielEscada/calendariossebastiao/main/Imagens/Icone.png">
+<link rel="apple-touch-icon" sizes="152x152" href="https://raw.githubusercontent.com/GabrielEscada/calendariossebastiao/main/Imagens/Icone.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/GabrielEscada/calendariossebastiao/main/Imagens/Icone.png">
+
+  <title>Casa de São Sebastião</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box
+    }
+
+    body{
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+
+      background:#1e90ff;
+
+      min-height:100vh;
+
+      padding:6px;
+    }
+
+    .container{
+      max-width:500px;
+
+      margin:0 auto;
+
+      background:#fff;
+
+      border-radius:14px;
+
+      padding:10px;
+
+      box-shadow:
+        0 6px 20px
+        rgba(0,0,0,.15);
+    }
+
+    /* TOPO */
+
+    .topo{
+      display:flex;
+
+      justify-content:space-between;
+
+      align-items:center;
+
+      gap:5px;
+
+      margin-bottom:6px;
+    }
+
+    .topo h1{
+      color:#333;
+
+      font-size:14px;
+
+      flex:1;
+
+      text-align:center;
+
+      line-height:1.2;
+    }
+
+    .btn-top{
+      background:#f0f4ff;
+
+      border:2px solid #1e90ff;
+
+      color:#1e90ff;
+
+      border-radius:14px;
+
+      padding:5px 7px;
+
+      font-size:10px;
+
+      font-weight:bold;
+
+      cursor:pointer;
+
+      white-space:nowrap;
+    }
+
+    .btn-top:active{
+      opacity:.8;
+    }
+
+    /* STATUS */
+
+    .status{
+      display:inline-block;
+
+      padding:2px 8px;
+
+      border-radius:10px;
+
+      font-size:9px;
+
+      background:#d4edda;
+
+      color:#155724;
+
+      margin:2px 0 6px;
+    }
+
+    /* INFO */
+
+    .info{
+      background:#1e90ff;
+
+      color:#fff;
+
+      border-radius:6px;
+
+      padding:6px;
+
+      margin-bottom:6px;
+
+      text-align:center;
+
+      font-size:11px;
+    }
+
+    .periodo{
+      text-align:center;
+
+      font-size:9px;
+
+      color:#666;
+
+      margin:4px 0;
+
+      padding:5px;
+
+      background:#fff3cd;
+
+      border-radius:4px;
+    }
+
+    /* ESTATÍSTICAS */
+
+    .stats{
+      display:grid;
+
+      grid-template-columns:
+        repeat(3,1fr);
+
+      gap:4px;
+
+      margin-bottom:6px;
+    }
+
+    .stat{
+      background:#f0f4ff;
+
+      padding:6px;
+
+      border-radius:6px;
+
+      text-align:center;
+    }
+
+    .stat-num{
+      font-size:18px;
+
+      font-weight:bold;
+
+      color:#1e90ff;
+    }
+
+    .stat-txt{
+      font-size:8px;
+
+      color:#666;
+    }
+
+    /* AÇÕES */
+
+    .acoes{
+      display:grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap:5px;
+
+      margin-bottom:7px;
+    }
+
+    .btn-acao{
+      border:0;
+
+      border-radius:6px;
+
+      padding:8px 5px;
+
+      color:white;
+
+      font-size:11px;
+
+      font-weight:bold;
+
+      cursor:pointer;
+    }
+
+    .btn-reserva{
+      background:#28a745;
+    }
+
+    .btn-bloqueio{
+      background:#6c757d;
+    }
+
+    /* NAVEGAÇÃO */
+
+    .nav{
+      display:flex;
+
+      justify-content:space-between;
+
+      align-items:center;
+
+      margin-bottom:6px;
+
+      gap:6px;
+    }
+
+    .nav button{
+      background:#1e90ff;
+
+      color:#fff;
+
+      border:none;
+
+      width:28px;
+
+      height:28px;
+
+      border-radius:50%;
+
+      font-size:14px;
+
+      cursor:pointer;
+
+      flex-shrink:0;
+    }
+
+    .nav span{
+      font-size:13px;
+
+      font-weight:bold;
+
+      flex:1;
+
+      text-align:center;
+    }
+
+    /* CALENDÁRIO */
+
+    .cal{
+      display:grid;
+
+      grid-template-columns:
+        repeat(7,1fr);
+
+      gap:1.5px;
+
+      margin-bottom:7px;
+    }
+
+    .cal h{
+      text-align:center;
+
+      font-weight:bold;
+
+      font-size:8px;
+
+      color:#888;
+
+      padding:3px 0;
+    }
+
+    .cal d{
+      aspect-ratio:1;
+
+      display:flex;
+
+      flex-direction:column;
+
+      align-items:center;
+
+      justify-content:center;
+
+      border-radius:5px;
+
+      font-size:11px;
+
+      cursor:pointer;
+
+      border:1px solid transparent;
+
+      font-weight:600;
+
+      min-height:30px;
+
+      transition:.1s;
+    }
+
+    .cal d:hover{
+      transform:scale(1.04);
+    }
+
+    .cal d.e{
+      cursor:default;
+
+      background:transparent!important;
+    }
+
+    .cal d.bloq{
+      background:#e0e0e0!important;
+
+      color:#777;
+
+      cursor:not-allowed;
+
+      opacity:.75;
+    }
+
+    .cal d.hoje{
+      border:
+        2px solid #1e90ff!important;
+    }
+
+    .cal d span{
+      font-size:7px;
+
+      font-weight:bold;
+
+      line-height:1;
+    }
+
+    /* DETALHES */
+
+    .detalhes{
+      background:#f7f7f7;
+
+      border-radius:7px;
+
+      padding:8px;
+
+      margin-top:5px;
+
+      margin-bottom:7px;
+    }
+
+    .detalhes h3{
+      font-size:12px;
+
+      color:#444;
+
+      margin-bottom:6px;
+    }
+
+    .sem-reserva{
+      font-size:10px;
+
+      color:#777;
+
+      text-align:center;
+
+      padding:6px;
+    }
+
+    .resumo-dia{
+      background:white;
+
+      border-radius:5px;
+
+      padding:6px;
+
+      margin-bottom:5px;
+
+      font-size:10px;
+
+      border-left:
+        4px solid #1e90ff;
+    }
+
+    .resumo-dia.cheio{
+      border-left-color:#dc3545;
+    }
+
+    .resumo-dia.bloqueado{
+      border-left-color:#6c757d;
+
+      background:#e0e0e0;
+    }
+
+    .reserva-item{
+      background:#fff;
+
+      border:
+        1px solid #ddd;
+
+      border-radius:5px;
+
+      padding:7px;
+
+      margin-top:5px;
+    }
+
+    .reserva-item strong{
+      color:#333;
+
+      font-size:11px;
+    }
+
+    .reserva-item div{
+      font-size:10px;
+
+      color:#555;
+
+      margin-top:2px;
+    }
+
+    .btn-remover{
+      width:100%;
+
+      background:#dc3545;
+
+      color:#fff;
+
+      border:0;
+
+      border-radius:4px;
+
+      padding:5px;
+
+      margin-top:6px;
+
+      font-size:10px;
+
+      font-weight:bold;
+
+      cursor:pointer;
+    }
+
+    .btn-remover-bloqueio{
+      background:#6c757d;
+    }
+
+    /* LEGENDA */
+
+    .leg{
+      display:flex;
+
+      gap:5px;
+
+      flex-wrap:wrap;
+
+      font-size:8px;
+
+      color:#666;
+    }
+
+    .leg i{
+      display:flex;
+
+      align-items:center;
+
+      gap:2px;
+    }
+
+    .leg c{
+      width:9px;
+
+      height:9px;
+
+      border-radius:2px;
+
+      border:
+        1px solid
+        rgba(0,0,0,.1);
+    }
+
+    /* BOTÃO ATUALIZAR */
+
+    .ref{
+      position:fixed;
+
+      right:15px;
+
+      bottom:15px;
+
+      width:44px;
+
+      height:44px;
+
+      border:0;
+
+      border-radius:50%;
+
+      background:#1e90ff;
+
+      color:white;
+
+      font-size:18px;
+
+      cursor:pointer;
+
+      box-shadow:
+        0 3px 10px
+        rgba(0,0,0,.3);
+
+      z-index:999;
+    }
+
+    /* TOAST */
+
+    .toast{
+      position:fixed;
+
+      bottom:70px;
+
+      left:50%;
+
+      transform:
+        translateX(-50%);
+
+      background:#333;
+
+      color:white;
+
+      padding:8px 15px;
+
+      border-radius:20px;
+
+      font-size:11px;
+
+      opacity:0;
+
+      pointer-events:none;
+
+      transition:.2s;
+
+      z-index:3000;
+    }
+
+    .toast.on{
+      opacity:1;
+    }
+
+    /* MODAIS */
+
+    .mod{
+      display:none;
+
+      position:fixed;
+
+      top:0;
+
+      left:0;
+
+      width:100%;
+
+      height:100%;
+
+      background:
+        rgba(0,0,0,.55);
+
+      justify-content:center;
+
+      align-items:center;
+
+      z-index:2000;
+    }
+
+    .mod-box{
+      background:white;
+
+      width:92%;
+
+      max-width:360px;
+
+      max-height:90vh;
+
+      overflow-y:auto;
+
+      border-radius:12px;
+
+      padding:15px;
+    }
+
+    .mod-box h3{
+      font-size:15px;
+
+      margin-bottom:10px;
+    }
+
+    .f{
+      margin-bottom:8px;
+    }
+
+    .f label{
+      display:block;
+
+      font-size:11px;
+
+      font-weight:bold;
+
+      margin-bottom:3px;
+
+      color:#555;
+    }
+
+    .f input{
+      width:100%;
+
+      padding:8px;
+
+      border:
+        2px solid #ddd;
+
+      border-radius:6px;
+
+      font-size:13px;
+    }
+
+    .f input:focus{
+      outline:none;
+
+      border-color:#1e90ff;
+    }
+
+    .alert{
+      padding:6px;
+
+      border-radius:5px;
+
+      margin-bottom:7px;
+
+      font-size:10px;
+
+      display:none;
+    }
+
+    .alert.w{
+      background:#fff3cd;
+
+      border:
+        1px solid #ffc107;
+
+      color:#856404;
+
+      display:block;
+    }
+
+    .alert.e{
+      background:#f8d7da;
+
+      border:
+        1px solid #dc3545;
+
+      color:#721c24;
+
+      display:block;
+    }
+
+    .pre{
+      background:#f0f4ff;
+
+      padding:7px;
+
+      border-radius:5px;
+
+      margin-bottom:7px;
+
+      font-size:10px;
+
+      text-align:center;
+
+      display:none;
+    }
+
+    .pre b{
+      display:block;
+
+      font-size:12px;
+
+      color:#1e90ff;
+    }
+
+    .btn{
+      width:100%;
+
+      padding:9px;
+
+      border:0;
+
+      border-radius:6px;
+
+      font-size:12px;
+
+      font-weight:bold;
+
+      cursor:pointer;
+
+      margin-top:4px;
+    }
+
+    .btn-save{
+      background:#28a745;
+
+      color:white;
+    }
+
+    .btn-delete{
+      background:#dc3545;
+
+      color:white;
+    }
+
+    .btn-cancel{
+      background:#6c757d;
+
+      color:white;
+    }
+
+    /* ========================================= */
+    /* ESTILOS PARA PWA */
+    /* ========================================= */
+    
+    /* Banner de instalação que aparece no rodapé */
+    .install-banner {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 16px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+      z-index: 9999;
+      border-top: 2px solid #1e90ff;
+    }
+    
+    .install-banner.show {
+      display: block;
+    }
+    
+    .install-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 500px;
+      margin: 0 auto;
+      gap: 10px;
+    }
+    
+    .install-text {
+      flex: 1;
+    }
+    
+    .install-text h3 {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 2px;
+    }
+    
+    .install-text p {
+      font-size: 11px;
+      color: #666;
+      margin: 0;
+    }
+    
+    .btn-install {
+      background: #1e90ff;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    
+    .btn-install:hover {
+      background: #187bcd;
+    }
+    
+    .btn-close-install {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: #999;
+      cursor: pointer;
+      padding: 0 5px;
+    }
+    
+    /* Indicador de PWA instalado */
+    .pwa-installed {
+      display: none;
+      background: #d4edda;
+      color: #155724;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    
+    .pwa-installed.show {
+      display: block;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- ========================================= -->
+  <!-- INDICADOR DE PWA INSTALADO -->
+  <!-- ========================================= -->
+  <div id="pwaInstalled" class="pwa-installed">
+    ✅ App instalado com sucesso!
+  </div>
+
+  <!-- TOPO -->
+  <div class="topo">
+
+    <button
+      class="btn-top"
+      onclick="abrirReserva()">
+
+      ➕ Reserva
+
+    </button>
+
+    <h1>
+      🏖️ Casa de São Sebastião
+    </h1>
+
+    <button
+      class="btn-top"
+      onclick="share()">
+
+      📤 Compartilhar
+
+    </button>
+
+  </div>
+
+  <div
+    class="status"
+    id="st">
+
+    🟢 Online
+
+  </div>
+
+  <div class="info">
+
+    Máximo:
+    <b>13 pessoas por dia</b>
+
+  </div>
+
+  <div
+    class="periodo"
+    id="prd">
+
+    Carregando período...
+
+  </div>
+
+  <!-- ESTATÍSTICAS -->
+  <div class="stats">
+
+    <div class="stat">
+
+      <div
+        class="stat-num"
+        id="nr">
+
+        0
+
+      </div>
+
+      <div class="stat-txt">
+
+        Reservas
+
+      </div>
+
+    </div>
+
+    <div class="stat">
+
+      <div
+        class="stat-num"
+        id="nl">
+
+        0
+
+      </div>
+
+      <div class="stat-txt">
+
+        Dias livres
+
+      </div>
+
+    </div>
+
+    <div class="stat">
+
+      <div
+        class="stat-num"
+        id="nc">
+
+        0
+
+      </div>
+
+      <div class="stat-txt">
+
+        Dias cheios
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- AÇÕES -->
+  <div class="acoes">
+
+    <button
+      class="btn-acao btn-reserva"
+      onclick="abrirReserva()">
+
+      ➕ Nova reserva
+
+    </button>
+
+    <button
+      class="btn-acao btn-bloqueio"
+      onclick="abrirBloqueio()">
+
+      🔒 Bloquear data
+
+    </button>
+
+  </div>
+
+  <!-- NAVEGAÇÃO -->
+  <div class="nav">
+
+    <button
+      onclick="mv(-1)">
+
+      ◀
+
+    </button>
+
+    <span id="tm"></span>
+
+    <button
+      onclick="mv(1)">
+
+      ▶
+
+    </button>
+
+  </div>
+
+  <!-- CALENDÁRIO -->
+  <div
+    class="cal"
+    id="cal">
+
+  </div>
+
+  <!-- DETALHES -->
+  <div
+    class="detalhes"
+    id="detalhes">
+
+    <h3>
+      📅 Selecione um dia
+    </h3>
+
+    <div class="sem-reserva">
+
+      Clique em uma data do calendário
+      para visualizar as reservas.
+
+    </div>
+
+  </div>
+
+  <!-- LEGENDA -->
+  <div class="leg">
+
+    <i>
+      <c style="background:#d4edda"></c>
+      Livre
+    </i>
+
+    <i>
+      <c style="background:#fff3cd"></c>
+      4–9 pessoas
+    </i>
+
+    <i>
+      <c style="background:#ff9999"></c>
+      10–13 pessoas
+    </i>
+
+    <i>
+      <c style="background:#e0e0e0"></c>
+      Bloqueado
+    </i>
+
+  </div>
+
+</div>
+
+<!-- ========================================= -->
+<!-- BANNER DE INSTALAÇÃO PWA -->
+<!-- ========================================= -->
+<div id="installBanner" class="install-banner">
+  <div class="install-content">
+    <div class="install-text">
+      <h3>📱 Instale o App</h3>
+      <p>Adicione à tela inicial para acesso rápido</p>
+    </div>
+    <button id="installBtn" class="btn-install">Instalar</button>
+    <button id="closeBannerBtn" class="btn-close-install">✕</button>
+  </div>
+</div>
+
+<!-- ATUALIZAR -->
+<button
+class="ref"
+onclick="load()">
+
+🔄
+
+</button>
+
+<!-- TOAST -->
+<div
+  class="toast"
+  id="to">
+
+</div>
+
+<!-- MODAL RESERVA -->
+<div
+  class="mod"
+  id="modalReserva">
+
+  <div class="mod-box">
+
+    <h3>
+      📅 Nova Reserva
+    </h3>
+
+    <div
+      class="alert"
+      id="alertReserva">
+
+    </div>
+
+    <div class="f">
+
+      <label>
+        Entrada
+      </label>
+
+      <input
+        type="date"
+        id="ie"
+        onchange="validarReserva()">
+
+    </div>
+
+    <div class="f">
+
+      <label>
+        Saída
+      </label>
+
+      <input
+        type="date"
+        id="is"
+        onchange="validarReserva()">
+
+    </div>
+
+    <div
+      class="pre"
+      id="preReserva">
+
+      <b id="periodoReserva"></b>
+
+      <span id="diasReserva"></span>
+
+    </div>
+
+    <div class="f">
+
+      <label>
+        Pessoas
+      </label>
+
+      <input
+        type="number"
+        id="ip"
+        min="1"
+        max="13"
+        value="1"
+        oninput="validarReserva()">
+
+    </div>
+
+    <div class="f">
+
+      <label>
+        Responsável
+      </label>
+
+      <input
+        type="text"
+        id="ir"
+        placeholder="Nome">
+
+    </div>
+
+    <div class="f">
+
+      <label>
+        Observações
+      </label>
+
+      <input
+        type="text"
+        id="io"
+        placeholder="Opcional">
+
+    </div>
+
+    <button
+      class="btn btn-save"
+      onclick="salvarReserva()">
+
+      💾 Salvar reserva
+
+    </button>
+
+    <button
+      class="btn btn-cancel"
+      onclick="fecharModais()">
+
+      Cancelar
+
+    </button>
+
+  </div>
+
+</div>
+
+<!-- MODAL BLOQUEIO -->
+<div
+  class="mod"
+  id="modalBloqueio">
+
+  <div class="mod-box">
+
+    <h3>
+      🔒 Bloquear Data
+    </h3>
+
+    <div
+      class="alert"
+      id="alertBloqueio">
+
+    </div>
+
+    <div class="f">
+
+      <label>
+        Data
+      </label>
+
+      <input
+        type="date"
+        id="ib">
+
+    </div>
+
+    <div class="f">
+
+      <label>
+        Motivo
+      </label>
+
+      <input
+        type="text"
+        id="im"
+        placeholder="Ex.: Manutenção">
+
+    </div>
+
+    <button
+      class="btn btn-save"
+      onclick="salvarBloqueio()">
+
+      🔒 Bloquear data
+
+    </button>
+
+    <button
+      class="btn btn-cancel"
+      onclick="fecharModais()">
+
+      Cancelar
+
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbz37mw-ccz0zGZGVGEY2gbqarYlcKi1BJlVpfF5l10O2DHg3tA-XmKZsYwiyaQgZyds4A/exec';
+
+async function apiGet(action) {
+  const response = await fetch(
+    API_URL + '?api=1&action=' + encodeURIComponent(action)
+  );
+
+  if (!response.ok) {
+    throw new Error('Erro ao acessar a API: ' + response.status);
+  }
+
+  return await response.json();
+}
+/********************************************************
+ * VARIÁVEIS
+ ********************************************************/
+
+var M =
+  new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1
+  );
+
+var R = {};
+
+var PERIODO = null;
+
+var DATA_SELECIONADA = null;
+
+var TIMER_TOAST = null;
+
+
+/********************************************************
+ * UTILITÁRIOS
+ ********************************************************/
+
+function hoje(){
+
+  var d =
+    new Date();
+
+  d.setHours(
+    0,0,0,0
+  );
+
+  return d;
+
+}
+
+
+function isoDate(d){
+
+  return d.getFullYear() +
+
+    '-' +
+
+    String(
+      d.getMonth()+1
+    ).padStart(2,'0') +
+
+    '-' +
+
+    String(
+      d.getDate()
+    ).padStart(2,'0');
+
+}
+
+
+function formatarData(s){
+
+  if(!s)
+    return '';
+
+  var p =
+    s.split('-');
+
+  return (
+    p[2] +
+    '/' +
+    p[1] +
+    '/' +
+    p[0]
+  );
+
+}
+
+
+function datasEntre(e,s){
+
+  var arr=[];
+
+  var d =
+    new Date(
+      e+'T12:00:00'
+    );
+
+  var f =
+    new Date(
+      s+'T12:00:00'
+    );
+
+
+  while(d<=f){
+
+    arr.push(
+      isoDate(d)
+    );
+
+    d.setDate(
+      d.getDate()+1
+    );
+
+  }
+
+  return arr;
+
+}
+
+
+function mostrarToast(msg){
+
+  var el =
+    document.getElementById('to');
+
+  el.textContent =
+    msg;
+
+  el.classList.add('on');
+
+  clearTimeout(
+    TIMER_TOAST
+  );
+
+  TIMER_TOAST =
+    setTimeout(
+      function(){
+
+        el.classList.remove(
+          'on'
+        );
+
+      },
+      2500
+    );
+
+}
+
+
+/********************************************************
+ * STATUS
+ ********************************************************/
+
+function status(tipo){
+
+  var el =
+    document.getElementById('st');
+
+  if(tipo==='carregando'){
+
+    el.textContent =
+      '🟡 Atualizando...';
+
+  }
+
+  else if(tipo==='erro'){
+
+    el.textContent =
+      '🔴 Erro';
+
+  }
+
+  else{
+
+    el.textContent =
+      '🟢 Online';
+
+  }
+
+}
+
+
+/********************************************************
+ * COMPARTILHAR
+ ********************************************************/
+
+function share(){
+
+  var url =
+    location.href;
+
+
+  if(
+    navigator.share
+  ){
+
+    navigator.share({
+
+      title:
+        'Casa de São Sebastião',
+
+      text:
+        'Calendário da Casa',
+
+      url:url
+
+    }).catch(
+      function(){}
+    );
+
+  }
+
+  else{
+
+    var c =
+      document.createElement(
+        'textarea'
+      );
+
+    c.value =
+      url;
+
+    document.body.appendChild(
+      c
+    );
+
+    c.select();
+
+    document.execCommand(
+      'copy'
+    );
+
+    document.body.removeChild(
+      c
+    );
+
+    mostrarToast(
+      '✅ Link copiado!'
+    );
+
+  }
+
+}
+
+
+/********************************************************
+ * VERIFICA SE DATA ESTÁ NA JANELA PERMITIDA
+ ********************************************************/
+
+function dataPermitida(data){
+
+  if(
+    !PERIODO ||
+    !PERIODO.inicio ||
+    !PERIODO.fim
+  ){
+
+    return false;
+
+  }
+
+
+  return (
+    data >= PERIODO.inicio &&
+    data <= PERIODO.fim
+  );
+
+}
+
+
+/********************************************************
+ * OBTÉM REGISTRO DO DIA
+ ********************************************************/
+
+function registroDia(data){
+
+  return R[data] ||
+    {
+      totalPessoas:0,
+
+      reservas:[],
+
+      bloqueado:false
+    };
+
+}
+
+
+/********************************************************
+ * COR DA OCUPAÇÃO
+ ********************************************************/
+
+function corOcupacao(
+  total,
+  bloqueado,
+  permitido
+){
+
+  if(
+    !permitido ||
+    bloqueado
+  ){
+
+    return '#e0e0e0';
+
+  }
+
+
+  if(
+    total <= 3
+  ){
+
+    return '#d4edda';
+
+  }
+
+
+  if(
+    total <= 9
+  ){
+
+    return '#fff3cd';
+
+  }
+
+
+  if(
+    total <= 13
+  ){
+
+    return '#ff9999';
+
+  }
+
+
+  return '#ff6666';
+
+}
+
+
+/********************************************************
+ * CARREGAR DADOS
+ ********************************************************/
+
+function load(){
+
+  status(
+    'carregando'
+  );
+
+
+ apiGet('getBookings')
+  .then(function(data){
+
+    R = data || {};
+
+    return apiGet('getPeriodoPermitido');
+
+  })
+  .then(function(periodo){
+
+    PERIODO = periodo;
+
+    status('ok');
+
+    atualizarPeriodo();
+
+    render();
+
+    if(DATA_SELECIONADA){
+
+      mostrarDetalhes(
+        DATA_SELECIONADA
+      );
+
+    }
+
+    atualizarEstatisticas();
+
+  })
+  .catch(function(err){
+
+    status('erro');
+
+    alert(
+      'Erro ao carregar dados: ' +
+      (
+        err &&
+        err.message
+          ? err.message
+          : err
+      )
+    );
+
+  });
+
+}
+
+/********************************************************
+ * TEXTO DO PERÍODO
+ ********************************************************/
+
+function atualizarPeriodo(){
+
+  if(
+    !PERIODO
+  ){
+
+    return;
+
+  }
+
+
+  document
+    .getElementById(
+      'prd'
+    )
+    .textContent =
+      '📅 Reservas disponíveis de ' +
+      formatarData(
+        PERIODO.inicio
+      ) +
+      ' até ' +
+      formatarData(
+        PERIODO.fim
+      );
+
+}
+
+
+/********************************************************
+ * RENDERIZAR CALENDÁRIO
+ ********************************************************/
+
+function render(){
+
+  var cal =
+    document.getElementById(
+      'cal'
+    );
+
+  cal.innerHTML =
+    '';
+
+
+  document
+    .getElementById(
+      'tm'
+    )
+    .textContent =
+
+    M.toLocaleDateString(
+      'pt-BR',
+      {
+        month:'long',
+        year:'numeric'
+      }
+    );
+
+
+  var dias = [
+
+    'Dom',
+    'Seg',
+    'Ter',
+    'Qua',
+    'Qui',
+    'Sex',
+    'Sáb'
+
+  ];
+
+
+  dias.forEach(
+    function(nome){
+
+      var h =
+        document.createElement(
+          'h'
+        );
+
+      h.textContent =
+        nome;
+
+      cal.appendChild(
+        h
+      );
+
+    }
+  );
+
+
+  var ano =
+    M.getFullYear();
+
+  var mes =
+    M.getMonth();
+
+
+  var primeiro =
+    new Date(
+      ano,
+      mes,
+      1
+    ).getDay();
+
+
+  var ultimo =
+    new Date(
+      ano,
+      mes+1,
+      0
+    ).getDate();
+
+
+  for(
+    var i=0;
+    i<primeiro;
+    i++
+  ){
+
+    var vazio =
+      document.createElement(
+        'd'
+      );
+
+    vazio.className =
+      'e';
+
+    cal.appendChild(
+      vazio
+    );
+
+  }
+
+
+  for(
+    var dia=1;
+    dia<=ultimo;
+    dia++
+  ){
+
+    var data =
+      ano +
+      '-' +
+      String(
+        mes+1
+      ).padStart(2,'0') +
+      '-' +
+      String(
+        dia
+      ).padStart(2,'0');
+
+
+    var registro =
+      registroDia(
+        data
+      );
+
+
+    var permitido =
+      dataPermitida(
+        data
+      );
+
+
+    var bloqueado =
+      registro.bloqueado;
+
+
+    var total =
+      Number(
+        registro.totalPessoas
+      ) || 0;
+
+
+    var dv =
+      document.createElement(
+        'd'
+      );
+
+
+    var classes =
+      [];
+
+
+    if(
+      !permitido ||
+      bloqueado
+    ){
+
+      classes.push(
+        'bloq'
+      );
+
+    }
+
+
+    var hojeAtual =
+      isoDate(
+        hoje()
+      );
+
+
+    if(
+      data ===
+      hojeAtual
+    ){
+
+      classes.push(
+        'hoje'
+      );
+
+    }
+
+
+    dv.className =
+      classes.join(
+        ' '
+      );
+
+
+    dv.style.backgroundColor =
+      corOcupacao(
+        total,
+        bloqueado,
+        permitido
+      );
+
+
+    var html =
+      '<span style="font-size:11px">' +
+      dia +
+      '</span>';
+
+
+    if(
+      !permitido
+    ){
+
+      html +=
+        '<span>🔒</span>';
+
+    }
+
+    else if(
+      bloqueado
+    ){
+
+      html +=
+        '<span>🔒</span>';
+
+    }
+
+    else if(
+      total > 0
+    ){
+
+      html +=
+        '<span>' +
+        total +
+        '/13</span>';
+
+    }
+
+
+    dv.innerHTML =
+      html;
+
+
+    if(
+      permitido &&
+      !bloqueado
+    ){
+
+      dv.onclick =
+        (function(
+          dataSelecionada
+        ){
+
+          return function(){
+
+            mostrarDetalhes(
+              dataSelecionada
+            );
+
+          };
+
+        })(data);
+
+    }
+
+    else{
+
+      dv.onclick =
+        function(){
+
+          if(
+            !permitido
+          ){
+
+            mostrarToast(
+              '🔒 Data fora do período disponível'
+            );
+
+          }
+
+          else{
+
+            mostrarToast(
+              '🔒 Esta data está bloqueada'
+            );
+
+          }
+
+          mostrarDetalhes(
+            data
+          );
+
+        };
+
+    }
+
+
+    cal.appendChild(
+      dv
+    );
+
+  }
+
+}
+
+
+/********************************************************
+ * ESTATÍSTICAS
+ ********************************************************/
+
+function atualizarEstatisticas(){
+
+  var ano =
+    M.getFullYear();
+
+  var mes =
+    M.getMonth();
+
+
+  var ultimo =
+    new Date(
+      ano,
+      mes+1,
+      0
+    ).getDate();
+
+
+  var reservas =
+    0;
+
+  var livres =
+    0;
+
+  var cheios =
+    0;
+
+
+  for(
+    var dia=1;
+    dia<=ultimo;
+    dia++
+  ){
+
+    var data =
+      ano +
+      '-' +
+      String(
+        mes+1
+      ).padStart(2,'0') +
+      '-' +
+      String(
+        dia
+      ).padStart(2,'0');
+
+
+    if(
+      !dataPermitida(
+        data
+      )
+    ){
+
+      continue;
+
+    }
+
+
+    var r =
+      registroDia(
+        data
+      );
+
+
+    reservas +=
+      r.reservas.length;
+
+
+    if(
+      !r.bloqueado &&
+      r.totalPessoas === 0
+    ){
+
+      livres++;
+
+    }
+
+
+    if(
+      r.totalPessoas >= 10
+    ){
+
+      cheios++;
+
+    }
+
+  }
+
+
+  document
+    .getElementById(
+      'nr'
+    )
+    .textContent =
+      reservas;
+
+
+  document
+    .getElementById(
+      'nl'
+    )
+    .textContent =
+      livres;
+
+
+  document
+    .getElementById(
+      'nc'
+    )
+    .textContent =
+      cheios;
+
+}
+
+
+/********************************************************
+ * DETALHES DO DIA
+ ********************************************************/
+
+function mostrarDetalhes(
+  data
+){
+
+  DATA_SELECIONADA =
+    data;
+
+
+  var el =
+    document.getElementById(
+      'detalhes'
+    );
+
+
+  var r =
+    registroDia(
+      data
+    );
+
+
+  var permitido =
+    dataPermitida(
+      data
+    );
+
+
+  var html =
+
+    '<h3>📅 ' +
+    formatarData(
+      data
+    ) +
+    '</h3>';
+
+
+  if(
+    !permitido
+  ){
+
+    html +=
+
+      '<div class="resumo-dia bloqueado">' +
+
+      '<b>🔒 Data bloqueada automaticamente</b>' +
+
+      '<div>Esta data está fora do período disponível para reservas.</div>' +
+
+      '</div>';
+
+  }
+
+
+  else if(
+    r.bloqueado
+  ){
+
+    html +=
+
+      '<div class="resumo-dia bloqueado">' +
+
+      '<b>🔒 Data bloqueada manualmente</b>';
+
+
+    if(
+      r.reservas &&
+      r.reservas.length
+    ){
+
+      html +=
+
+        '<div>Atenção: existem reservas registradas nesta data.</div>';
+
+    }
+
+
+    html +=
+
+      '</div>';
+
+  }
+
+
+  html +=
+
+    '<div class="resumo-dia ' +
+    (
+      r.totalPessoas >= 10
+        ? 'cheio'
+        : ''
+    ) +
+    '">' +
+
+    '<b>Ocupação: ' +
+    r.totalPessoas +
+    '/13 pessoas</b>' +
+
+    '<div>' +
+    (
+      r.totalPessoas === 0
+        ? 'Nenhuma pessoa reservada.'
+        : 'Total de pessoas nas reservas deste dia.'
+    ) +
+    '</div>' +
+
+    '</div>';
+
+
+  if(
+    !r.reservas ||
+    r.reservas.length === 0
+  ){
+
+    html +=
+
+      '<div class="sem-reserva">' +
+
+      'Nenhuma reserva registrada para este dia.' +
+
+      '</div>';
+
+  }
+
+  else{
+
+    html +=
+
+      '<div style="font-size:10px;font-weight:bold;margin-top:6px">' +
+
+      'Reservas deste dia:' +
+
+      '</div>';
+
+
+    r.reservas.forEach(
+      function(reserva){
+
+        html +=
+
+          '<div class="reserva-item">' +
+
+          '<strong>👤 ' +
+          escapeHtml(
+            reserva.responsavel ||
+            'Sem responsável'
+          ) +
+          '</strong>' +
+
+          '<div>📥 Entrada: ' +
+          formatarData(
+            reserva.entrada
+          ) +
+          '</div>' +
+
+          '<div>📤 Saída: ' +
+          formatarData(
+            reserva.saida
+          ) +
+          '</div>' +
+
+          '<div>👥 Pessoas: ' +
+          reserva.pessoas +
+          '</div>';
+
+
+        if(
+          reserva.observacoes
+        ){
+
+          html +=
+
+            '<div>📝 Observações: ' +
+            escapeHtml(
+              reserva.observacoes
+            ) +
+            '</div>';
+
+        }
+
+
+        html +=
+
+          '<button class="btn-remover" ' +
+
+          'onclick="cancelarReserva(\'' +
+
+          reserva.id +
+
+          '\')">' +
+
+          '🗑️ Cancelar esta reserva' +
+
+          '</button>' +
+
+          '</div>';
+
+      }
+    );
+
+  }
+
+
+  if(
+    r.bloqueado
+  ){
+
+    html +=
+
+      '<button ' +
+
+      'class="btn-remover btn-remover-bloqueio" ' +
+
+      'onclick="removerBloqueioDoDia(\'' +
+
+      data +
+
+      '\')">' +
+
+      '🔓 Remover bloqueio desta data' +
+
+      '</button>';
+
+  }
+
+
+  el.innerHTML =
+    html;
+
+}
+
+
+/********************************************************
+ * PROTEÇÃO CONTRA HTML
+ ********************************************************/
+
+function escapeHtml(
+  texto
+){
+
+  return String(
+    texto || ''
+  )
+
+  .replace(
+    /&/g,
+    '&amp;'
+  )
+
+  .replace(
+    /</g,
+    '&lt;'
+  )
+
+  .replace(
+    />/g,
+    '&gt;'
+  )
+
+  .replace(
+    /"/g,
+    '&quot;'
+  )
+
+  .replace(
+    /'/g,
+    '&#039;'
+  );
+
+}
+
+
+/********************************************************
+ * NAVEGAÇÃO
+ ********************************************************/
+
+function mv(
+  direcao
+){
+
+  var nova =
+    new Date(
+      M
+    );
+
+
+  nova.setMonth(
+    nova.getMonth() +
+    direcao
+  );
+
+
+  M =
+    nova;
+
+
+  render();
+
+  atualizarEstatisticas();
+
+}
+
+
+function hj(){
+
+  var d =
+    hoje();
+
+
+  M =
+    new Date(
+      d.getFullYear(),
+      d.getMonth(),
+      1
+    );
+
+
+  render();
+
+  atualizarEstatisticas();
+
+  mostrarToast(
+    '📍 Mês atual'
+  );
+
+}
+
+
+/********************************************************
+ * ABRIR RESERVA
+ ********************************************************/
+
+function abrirReserva(){
+
+  document
+    .getElementById(
+      'alertReserva'
+    )
+    .className =
+      'alert';
+
+
+  document
+    .getElementById(
+      'preReserva'
+    )
+    .style.display =
+      'none';
+
+
+  document
+    .getElementById(
+      'ie'
+    )
+    .value =
+      PERIODO
+        ? PERIODO.inicio
+        : '';
+
+
+  document
+    .getElementById(
+      'is'
+    )
+    .value =
+      PERIODO
+        ? PERIODO.inicio
+        : '';
+
+
+  document
+    .getElementById(
+      'ip'
+    )
+    .value =
+      1;
+
+
+  document
+    .getElementById(
+      'ir'
+    )
+    .value =
+      '';
+
+
+  document
+    .getElementById(
+      'io'
+    )
+    .value =
+      '';
+
+
+  document
+    .getElementById(
+      'modalReserva'
+    )
+    .style.display =
+      'flex';
+
+
+  validarReserva();
+
+}
+
+
+/********************************************************
+ * ABRIR BLOQUEIO
+ ********************************************************/
+
+function abrirBloqueio(){
+
+  document
+    .getElementById(
+      'alertBloqueio'
+    )
+    .className =
+      'alert';
+
+
+  document
+    .getElementById(
+      'ib'
+    )
+    .value =
+      PERIODO
+        ? PERIODO.inicio
+        : '';
+
+
+  document
+    .getElementById(
+      'im'
+    )
+    .value =
+      '';
+
+
+  document
+    .getElementById(
+      'modalBloqueio'
+    )
+    .style.display =
+      'flex';
+
+}
+
+
+/********************************************************
+ * FECHAR MODAIS
+ ********************************************************/
+
+function fecharModais(){
+
+  document
+    .getElementById(
+      'modalReserva'
+    )
+    .style.display =
+      'none';
+
+
+  document
+    .getElementById(
+      'modalBloqueio'
+    )
+    .style.display =
+      'none';
+
+}
+
+
+/********************************************************
+ * VALIDAR RESERVA
+ ********************************************************/
+
+function validarReserva(){
+
+  var e =
+    document
+      .getElementById(
+        'ie'
+      )
+      .value;
+
+
+  var s =
+    document
+      .getElementById(
+        'is'
+      )
+      .value;
+
+
+  var p =
+    parseInt(
+      document
+        .getElementById(
+          'ip'
+        )
+        .value,
+      10
+    );
+
+
+  var alertEl =
+    document
+      .getElementById(
+        'alertReserva'
+      );
+
+
+  var pre =
+    document
+      .getElementById(
+        'preReserva'
+      );
+
+
+  alertEl.className =
+    'alert';
+
+
+  pre.style.display =
+    'none';
+
+
+  if(
+    !e ||
+    !s
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    s < e
+  ){
+
+    alertEl.textContent =
+      '❌ A saída não pode ser anterior à entrada.';
+
+    alertEl.className =
+      'alert e';
+
+    return;
+
+  }
+
+
+  if(
+    !dataPermitida(e) ||
+    !dataPermitida(s)
+  ){
+
+    alertEl.textContent =
+      '❌ A reserva deve estar dentro do período permitido.';
+
+    alertEl.className =
+      'alert e';
+
+    return;
+
+  }
+
+
+  var datas =
+    datasEntre(
+      e,
+      s
+    );
+
+
+  for(
+    var i=0;
+    i<datas.length;
+    i++
+  ){
+
+    if(
+      !dataPermitida(
+        datas[i]
+      )
+    ){
+
+      alertEl.textContent =
+        '❌ Uma ou mais datas estão fora do período permitido.';
+
+      alertEl.className =
+        'alert e';
+
+      return;
+
+    }
+
+
+    var r =
+      registroDia(
+        datas[i]
+      );
+
+
+    if(
+      r.bloqueado
+    ){
+
+      alertEl.textContent =
+        '❌ A data ' +
+        formatarData(
+          datas[i]
+        ) +
+        ' está bloqueada.';
+
+      alertEl.className =
+        'alert e';
+
+      return;
+
+    }
+
+
+    if(
+      r.totalPessoas +
+      p >
+      13
+    ){
+
+      alertEl.textContent =
+        '❌ A data ' +
+        formatarData(
+          datas[i]
+        ) +
+        ' ultrapassaria o limite de 13 pessoas.';
+
+      alertEl.className =
+        'alert e';
+
+      return;
+
+    }
+
+  }
+
+
+  if(
+    !p ||
+    p < 1
+  ){
+
+    alertEl.textContent =
+      '❌ Informe pelo menos 1 pessoa.';
+
+    alertEl.className =
+      'alert e';
+
+    return;
+
+  }
+
+
+  if(
+    p > 13
+  ){
+
+    alertEl.textContent =
+      '❌ O máximo é 13 pessoas.';
+
+    alertEl.className =
+      'alert e';
+
+    return;
+
+  }
+
+
+  pre.style.display =
+    'block';
+
+
+  document
+    .getElementById(
+      'periodoReserva'
+    )
+    .textContent =
+
+    formatarData(e) +
+    ' → ' +
+    formatarData(s);
+
+
+  document
+    .getElementById(
+      'diasReserva'
+    )
+    .textContent =
+
+    datas.length +
+    ' dia(s) | ' +
+    p +
+    ' pessoa(s) por dia';
+
+}
+
+
+/********************************************************
+ * SALVAR RESERVA
+ ********************************************************/
+
+function salvarReserva(){
+
+  var e =
+    document
+      .getElementById(
+        'ie'
+      )
+      .value;
+
+
+  var s =
+    document
+      .getElementById(
+        'is'
+      )
+      .value;
+
+
+  var p =
+    parseInt(
+      document
+        .getElementById(
+          'ip'
+        )
+        .value,
+      10
+    );
+
+
+  var r =
+    document
+      .getElementById(
+        'ir'
+      )
+      .value
+      .trim();
+
+
+  var o =
+    document
+      .getElementById(
+        'io'
+      )
+      .value
+      .trim();
+
+
+  if(
+    !e ||
+    !s ||
+    !r
+  ){
+
+    alert(
+      '❌ Preencha entrada, saída e responsável.'
+    );
+
+    return;
+
+  }
+
+
+  validarReserva();
+
+
+  if(
+    document
+      .getElementById(
+        'alertReserva'
+      )
+      .classList
+      .contains(
+        'e'
+      )
+  ){
+
+    return;
+
+  }
+
+
+  var btn =
+    document
+      .querySelector(
+        '#modalReserva .btn-save'
+      );
+
+
+  btn.disabled =
+    true;
+
+  btn.textContent =
+    '⏳ Salvando...';
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      function(resp){
+
+        btn.disabled =
+          false;
+
+        btn.textContent =
+          '💾 Salvar reserva';
+
+
+        if(
+          resp &&
+          resp.ok
+        ){
+
+          fecharModais();
+
+          mostrarToast(
+            '✅ Reserva criada!'
+          );
+
+          load();
+
+        }
+
+        else{
+
+          alert(
+            '❌ ' +
+            (
+              resp &&
+              resp.msg
+                ? resp.msg
+                : 'Não foi possível salvar.'
+            )
+          );
+
+        }
+
+      }
+    )
+
+    .withFailureHandler(
+      function(err){
+
+        btn.disabled =
+          false;
+
+        btn.textContent =
+          '💾 Salvar reserva';
+
+
+        alert(
+          '❌ Erro ao salvar: ' +
+          (
+            err &&
+            err.message
+              ? err.message
+              : err
+          )
+        );
+
+      }
+    )
+
+    .saveBookingPeriodo(
+      e,
+      s,
+      p,
+      r,
+      o
+    );
+
+}
+
+
+/********************************************************
+ * SALVAR BLOQUEIO
+ ********************************************************/
+
+function salvarBloqueio(){
+
+  var data =
+    document
+      .getElementById(
+        'ib'
+      )
+      .value;
+
+
+  var motivo =
+    document
+      .getElementById(
+        'im'
+      )
+      .value
+      .trim();
+
+
+  if(
+    !data
+  ){
+
+    alert(
+      '❌ Informe a data.'
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !dataPermitida(
+      data
+    )
+  ){
+
+    alert(
+      '❌ Essa data está fora do período permitido.'
+    );
+
+    return;
+
+  }
+
+
+  var btn =
+    document
+      .querySelector(
+        '#modalBloqueio .btn-save'
+      );
+
+
+  btn.disabled =
+    true;
+
+  btn.textContent =
+    '⏳ Salvando...';
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      function(resp){
+
+        btn.disabled =
+          false;
+
+        btn.textContent =
+          '🔒 Bloquear data';
+
+
+        if(
+          resp &&
+          resp.ok
+        ){
+
+          fecharModais();
+
+          mostrarToast(
+            '🔒 Data bloqueada!'
+          );
+
+          load();
+
+        }
+
+        else{
+
+          alert(
+            '❌ ' +
+            (
+              resp &&
+              resp.msg
+                ? resp.msg
+                : 'Não foi possível bloquear.'
+            )
+          );
+
+        }
+
+      }
+    )
+
+    .withFailureHandler(
+      function(err){
+
+        btn.disabled =
+          false;
+
+        btn.textContent =
+          '🔒 Bloquear data';
+
+
+        alert(
+          '❌ Erro: ' +
+          (
+            err &&
+            err.message
+              ? err.message
+              : err
+          )
+        );
+
+      }
+    )
+
+    .saveBlock(
+      data,
+      motivo
+    );
+
+}
+
+
+/********************************************************
+ * CANCELAR RESERVA
+ ********************************************************/
+
+function cancelarReserva(
+  id
+){
+
+  if(
+    !confirm(
+      'Deseja realmente cancelar esta reserva?'
+    )
+  ){
+
+    return;
+
+  }
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      function(resp){
+
+        if(
+          resp &&
+          resp.ok
+        ){
+
+          mostrarToast(
+            '🗑️ Reserva cancelada!'
+          );
+
+          load();
+
+        }
+
+        else{
+
+          alert(
+            '❌ ' +
+            (
+              resp &&
+              resp.msg
+                ? resp.msg
+                : 'Erro ao cancelar.'
+            )
+          );
+
+        }
+
+      }
+    )
+
+    .withFailureHandler(
+      function(err){
+
+        alert(
+          '❌ Erro ao cancelar: ' +
+          (
+            err &&
+            err.message
+              ? err.message
+              : err
+          )
+        );
+
+      }
+    )
+
+    .deleteBooking(
+      id
+    );
+
+}
+
+
+/********************************************************
+ * REMOVER BLOQUEIO
+ ********************************************************/
+
+function removerBloqueioDoDia(
+  data
+){
+
+  if(
+    !confirm(
+      'Deseja remover o bloqueio desta data?'
+    )
+  ){
+
+    return;
+
+  }
+
+
+  var r =
+    registroDia(
+      data
+    );
+
+
+  /*
+   * O GS atual retorna apenas
+   * bloqueado:true no agrupamento.
+   *
+   * Como deleteBlock exige o ID,
+   * precisamos localizar o ID.
+   *
+   * A versão atual do GS não devolve
+   * o ID do bloqueio.
+   *
+   * Por isso, esta função utiliza
+   * uma confirmação e informa que
+   * a remoção automática depende
+   * da versão do backend que retorna
+   * o ID do bloqueio.
+   */
+
+  alert(
+    'Para remover este bloqueio, o backend precisa retornar o ID do bloqueio associado à data.'
+  );
+
+}
+
+
+/********************************************************
+ * FECHAR MODAL CLICANDO FORA
+ ********************************************************/
+
+document
+  .getElementById(
+    'modalReserva'
+  )
+  .addEventListener(
+    'click',
+    function(e){
+
+      if(
+        e.target === this
+      ){
+
+        fecharModais();
+
+      }
+
+    }
+  );
+
+
+document
+  .getElementById(
+    'modalBloqueio'
+  )
+  .addEventListener(
+    'click',
+    function(e){
+
+      if(
+        e.target === this
+      ){
+
+        fecharModais();
+
+      }
+
+    }
+  );
+
+
+/********************************************************
+ * INICIALIZAÇÃO
+ ********************************************************/
+
+load();
+
+
+// ========================================= */
+// CÓDIGO PARA PWA - INSTALAÇÃO
+// ========================================= */
+
+// DETECTA SE O APP JÁ ESTÁ INSTALADO
+function isPWAInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone === true;
+}
+
+// MOSTRA INDICADOR SE JÁ INSTALADO
+if (isPWAInstalled()) {
+  document.getElementById('pwaInstalled').classList.add('show');
+}
+
+// VARIÁVEIS PARA INSTALAÇÃO
+let deferredPrompt;
+let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+// EVENTO DE INSTALAÇÃO (ANDROID/CHROME)
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // MOSTRA O BANNER
+  document.getElementById('installBanner').classList.add('show');
+});
+
+// QUANDO O APP É INSTALADO
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  document.getElementById('installBanner').classList.remove('show');
+  document.getElementById('pwaInstalled').classList.add('show');
+});
+
+// FUNÇÃO PARA INSTALAR
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (isIOS) {
+    // PARA IPHONE
+    alert('📱 Para instalar no iPhone:\n\n1. Toque no ícone de Compartilhar (⬆️)\n2. Role para baixo e toque em "Adicionar à Tela Inicial"\n3. Toque em "Adicionar"');
+    document.getElementById('installBanner').classList.remove('show');
+    return;
+  }
+  
+  if (deferredPrompt) {
+    // PARA ANDROID/CHROME
+    try {
+      await deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      
+      if (choiceResult.outcome === 'accepted') {
+        console.log('App instalado!');
+      }
+      
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.remove('show');
+      
+    } catch (error) {
+      console.error('Erro:', error);
+    }
+  } else {
+    alert('📱 Para instalar:\n\n- Chrome: Toque no menu (⋮) e "Instalar aplicativo"\n- Safari: Toque em Compartilhar (⬆️) e "Adicionar à Tela Inicial"');
+  }
+});
+
+// FECHAR BANNER
+document.getElementById('closeBannerBtn').addEventListener('click', () => {
+  document.getElementById('installBanner').classList.remove('show');
+});
+
+// REGISTRAR SERVICE WORKER
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('?sw=1')
+      .then(registration => {
+        console.log('Service Worker registrado!');
+      })
+      .catch(error => {
+        console.log('Erro ao registrar Service Worker:', error);
+      });
+  });
+}
+
+</script>
+
+</body>
+</html>
