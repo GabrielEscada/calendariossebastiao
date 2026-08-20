@@ -1281,9 +1281,36 @@ async function apiGet(action) {
   if (!response.ok) {
     throw new Error('Erro ao acessar a API: ' + response.status);
   }
+async function apiPost(action, dados) {
+
+  const params = new URLSearchParams();
+
+  params.append('api', '1');
+  params.append('action', action);
+
+  Object.keys(dados).forEach(function(chave) {
+    params.append(
+      chave,
+      dados[chave] == null
+        ? ''
+        : dados[chave]
+    );
+  });
+
+  const response = await fetch(
+    API_URL + '?' + params.toString()
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      'Erro ao acessar a API: ' +
+      response.status
+    );
+  }
 
   return await response.json();
 }
+
 /********************************************************
  * VARIÁVEIS
  ********************************************************/
@@ -2930,80 +2957,92 @@ function salvarReserva(){
     '⏳ Salvando...';
 
 
-  google.script.run
+  fetch(
+  API_URL +
+  '?api=1' +
+  '&action=saveBookingPeriodo' +
+  '&entrada=' + encodeURIComponent(e) +
+  '&saida=' + encodeURIComponent(s) +
+  '&pessoas=' + encodeURIComponent(p) +
+  '&responsavel=' + encodeURIComponent(r) +
+  '&observacoes=' + encodeURIComponent(o)
+)
 
-    .withSuccessHandler(
-      function(resp){
+.then(function(response){
 
-        btn.disabled =
-          false;
+  if(!response.ok){
 
-        btn.textContent =
-          '💾 Salvar reserva';
-
-
-        if(
-          resp &&
-          resp.ok
-        ){
-
-          fecharModais();
-
-          mostrarToast(
-            '✅ Reserva criada!'
-          );
-
-          load();
-
-        }
-
-        else{
-
-          alert(
-            '❌ ' +
-            (
-              resp &&
-              resp.msg
-                ? resp.msg
-                : 'Não foi possível salvar.'
-            )
-          );
-
-        }
-
-      }
-    )
-
-    .withFailureHandler(
-      function(err){
-
-        btn.disabled =
-          false;
-
-        btn.textContent =
-          '💾 Salvar reserva';
-
-
-        alert(
-          '❌ Erro ao salvar: ' +
-          (
-            err &&
-            err.message
-              ? err.message
-              : err
-          )
-        );
-
-      }
-    )
-
-    .saveBookingPeriodo(
-      e,
-      s,
-      p,
-      r,
-      o
+    throw new Error(
+      'Erro HTTP: ' +
+      response.status
     );
+
+  }
+
+  return response.json();
+
+})
+
+.then(function(resp){
+
+  btn.disabled =
+    false;
+
+  btn.textContent =
+    '💾 Salvar reserva';
+
+
+  if(
+    resp &&
+    resp.ok
+  ){
+
+    fecharModais();
+
+    mostrarToast(
+      '✅ Reserva criada!'
+    );
+
+    load();
+
+  }
+
+  else{
+
+    alert(
+      '❌ ' +
+      (
+        resp &&
+        resp.msg
+          ? resp.msg
+          : 'Não foi possível salvar.'
+      )
+    );
+
+  }
+
+})
+
+.catch(function(err){
+
+  btn.disabled =
+    false;
+
+  btn.textContent =
+    '💾 Salvar reserva';
+
+
+  alert(
+    '❌ Erro ao salvar: ' +
+    (
+      err &&
+      err.message
+        ? err.message
+        : err
+    )
+  );
+
+});
 
 }
 
