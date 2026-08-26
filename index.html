@@ -3112,78 +3112,89 @@ function salvarBloqueio(){
     '⏳ Salvando...';
 
 
-  google.script.run
+ fetch(
+  API_URL +
+  '?api=1' +
+  '&action=saveBlock' +
+  '&data=' + encodeURIComponent(data) +
+  '&motivo=' + encodeURIComponent(motivo)
+)
 
-    .withSuccessHandler(
-      function(resp){
+.then(function(response){
 
-        btn.disabled =
-          false;
+  if(!response.ok){
 
-        btn.textContent =
-          '🔒 Bloquear data';
-
-
-        if(
-          resp &&
-          resp.ok
-        ){
-
-          fecharModais();
-
-          mostrarToast(
-            '🔒 Data bloqueada!'
-          );
-
-          load();
-
-        }
-
-        else{
-
-          alert(
-            '❌ ' +
-            (
-              resp &&
-              resp.msg
-                ? resp.msg
-                : 'Não foi possível bloquear.'
-            )
-          );
-
-        }
-
-      }
-    )
-
-    .withFailureHandler(
-      function(err){
-
-        btn.disabled =
-          false;
-
-        btn.textContent =
-          '🔒 Bloquear data';
-
-
-        alert(
-          '❌ Erro: ' +
-          (
-            err &&
-            err.message
-              ? err.message
-              : err
-          )
-        );
-
-      }
-    )
-
-    .saveBlock(
-      data,
-      motivo
+    throw new Error(
+      'Erro HTTP: ' +
+      response.status
     );
 
+  }
+
+  return response.json();
+
+})
+
+.then(function(resp){
+
+  btn.disabled =
+    false;
+
+  btn.textContent =
+    '🔒 Bloquear data';
+
+
+  if(
+    resp &&
+    resp.ok
+  ){
+
+    fecharModais();
+
+    mostrarToast(
+      '🔒 Data bloqueada!'
+    );
+
+    load();
+
+  }
+
+  else{
+
+    alert(
+      '❌ ' +
+      (
+        resp &&
+        resp.msg
+          ? resp.msg
+          : 'Não foi possível bloquear.'
+      )
+    );
+
+  }
+
+})
+
+.catch(function(err){
+
+  btn.disabled =
+    false;
+
+  btn.textContent =
+    '🔒 Bloquear data';
+
+
+  alert(
+    '❌ Erro: ' +
+    (
+      err &&
+      err.message
+        ? err.message
+        : err
+    )
+  );
+
+});
 }
 
 
