@@ -3217,61 +3217,72 @@ function cancelarReserva(
   }
 
 
-  google.script.run
+ fetch(
+  API_URL +
+  '?api=1' +
+  '&action=deleteBooking' +
+  '&id=' + encodeURIComponent(id)
+)
 
-    .withSuccessHandler(
-      function(resp){
+.then(function(response){
 
-        if(
-          resp &&
-          resp.ok
-        ){
+  if(!response.ok){
 
-          mostrarToast(
-            '🗑️ Reserva cancelada!'
-          );
-
-          load();
-
-        }
-
-        else{
-
-          alert(
-            '❌ ' +
-            (
-              resp &&
-              resp.msg
-                ? resp.msg
-                : 'Erro ao cancelar.'
-            )
-          );
-
-        }
-
-      }
-    )
-
-    .withFailureHandler(
-      function(err){
-
-        alert(
-          '❌ Erro ao cancelar: ' +
-          (
-            err &&
-            err.message
-              ? err.message
-              : err
-          )
-        );
-
-      }
-    )
-
-    .deleteBooking(
-      id
+    throw new Error(
+      'Erro HTTP: ' +
+      response.status
     );
 
+  }
+
+  return response.json();
+
+})
+
+.then(function(resp){
+
+  if(
+    resp &&
+    resp.ok
+  ){
+
+    mostrarToast(
+      '🗑️ Reserva cancelada!'
+    );
+
+    load();
+
+  }
+
+  else{
+
+    alert(
+      '❌ ' +
+      (
+        resp &&
+        resp.msg
+          ? resp.msg
+          : 'Erro ao cancelar.'
+      )
+    );
+
+  }
+
+})
+
+.catch(function(err){
+
+  alert(
+    '❌ Erro ao cancelar: ' +
+    (
+      err &&
+      err.message
+        ? err.message
+        : err
+    )
+  );
+
+});
 }
 
 
