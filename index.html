@@ -1274,13 +1274,26 @@ onclick="load()">
 const API_URL = 'https://script.google.com/macros/s/AKfycbz37mw-ccz0zGZGVGEY2gbqarYlcKi1BJlVpfF5l10O2DHg3tA-XmKZsYwiyaQgZyds4A/exec';
 
 async function apiGet(action) {
-  const response = await fetch(
-    API_URL + '?api=1&action=' + encodeURIComponent(action)
-  );
 
-  if (!response.ok) {
-    throw new Error('Erro ao acessar a API: ' + response.status);
+  const response =
+    await fetch(
+      API_URL +
+      '?api=1&action=' +
+      encodeURIComponent(action)
+    );
+
+  if(!response.ok){
+
+    throw new Error(
+      'Erro ao acessar a API: ' +
+      response.status
+    );
+
   }
+
+  return await response.json();
+
+}
 async function apiPost(action, dados) {
 
   const params = new URLSearchParams();
