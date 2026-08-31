@@ -359,6 +359,22 @@
       opacity:.75;
     }
 
+    .cal{
+      touch-action:pan-y;
+      user-select:none;
+    }
+
+    .cal.swipe-left{
+      animation:calSlideLeft .16s ease-out;
+    }
+
+    .cal.swipe-right{
+      animation:calSlideRight .16s ease-out;
+    }
+
+    @keyframes calSlideLeft{from{transform:translateX(18px);opacity:.5}to{transform:translateX(0);opacity:1}}
+    @keyframes calSlideRight{from{transform:translateX(-18px);opacity:.5}to{transform:translateX(0);opacity:1}}
+
     .cal d.hoje{
       border:
         2px solid #1e90ff!important;
@@ -1274,58 +1290,99 @@ onclick="load()">
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbz37mw-ccz0zGZGVGEY2gbqarYlcKi1BJlVpfF5l10O2DHg3tA-XmKZsYwiyaQgZyds4A/exec';
 
-async function apiGet(action) {
+/*
+ * O GitHub Pages e o Google Apps Script estão em domínios diferentes.
+ * Por isso, as chamadas à API são feitas por JSONP, evitando o bloqueio
+ * de leitura causado pelo CORS do fetch().
+ */
+function jsonpRequest(action, dados) {
 
-  const response =
-    await fetch(
+  return new Promise(function(resolve, reject) {
+
+    var callbackName =
+      '__casaSebastiao_' +
+      Date.now() + '_' +
+      Math.floor(Math.random() * 1000000);
+
+    var script =
+      document.createElement('script');
+
+    var params = new URLSearchParams();
+
+    params.append('api', '1');
+    params.append('action', action);
+    params.append('callback', callbackName);
+
+    Object.keys(dados || {}).forEach(function(chave) {
+      params.append(
+        chave,
+        dados[chave] == null
+          ? ''
+          : dados[chave]
+      );
+    });
+
+    var timer = null;
+
+    function limpar() {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+
+      try {
+        delete window[callbackName];
+      } catch (e) {
+        window[callbackName] = undefined;
+      }
+    }
+
+    window[callbackName] = function(resposta) {
+      limpar();
+      resolve(resposta);
+    };
+
+    script.onerror = function() {
+      limpar();
+      reject(
+        new Error(
+          'Não foi possível acessar o Google Apps Script.'
+        )
+      );
+    };
+
+    script.src =
       API_URL +
-      '?api=1&action=' +
-      encodeURIComponent(action)
-    );
+      '?' +
+      params.toString();
 
-  if(!response.ok){
+    document.head.appendChild(script);
 
-    throw new Error(
-      'Erro ao acessar a API: ' +
-      response.status
-    );
+    timer = setTimeout(function() {
+      limpar();
+      reject(
+        new Error(
+          'Tempo esgotado ao acessar a API.'
+        )
+      );
+    }, 20000);
+  });
+}
 
-  }
 
-  return await response.json();
+async function apiGet(action) {
+  return await jsonpRequest(action, {});
+}
 
+
+async function apiPost(action, dados) {
+  return await jsonpRequest(action, dados || {});
 }
   
-async function apiPost(action, dados) {
-
-  const params = new URLSearchParams();
-
-  params.append('api', '1');
-  params.append('action', action);
-
-  Object.keys(dados).forEach(function(chave) {
-    params.append(
-      chave,
-      dados[chave] == null
-        ? ''
-        : dados[chave]
-    );
-  });
-
-  const response = await fetch(
-    API_URL + '?' + params.toString()
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      'Erro ao acessar a API: ' +
-      response.status
-    );
-  }
-
-  return await response.json();
-}
-
 /********************************************************
  * VARIÁVEIS
  ********************************************************/
@@ -1592,18 +1649,15 @@ function registroDia(data){
 
   return R[data] ||
     {
+      totalPessoas:0,
 
-      totalPessoas: 0,
+      reservas:[],
 
-      reservas: [],
-
-      bloqueado: false,
-
-      bloqueioId: null
-
+      bloqueado:false
     };
 
 }
+
 
 /********************************************************
  * COR DA OCUPAÇÃO
@@ -1987,63 +2041,22 @@ function render(){
       html;
 
 
-    if(
-      permitido &&
-      !bloqueado
-    ){
-
-dv.onclick =
-  (function(dataSelecionada){
-
-    return function(){
-
-      /*
-       * Ao tocar em uma data disponível,
-       * abre diretamente o formulário
-       * de nova reserva.
-       */
-
-      abrirReserva(
-        dataSelecionada
-      );
-
-    };
-
-  })(data);
-
-
-    }
-
-    else{
-
-      dv.onclick =
-        function(){
-
-          if(
-            !permitido
-          ){
-
-            mostrarToast(
-              '🔒 Data fora do período disponível'
-            );
-
+    dv.onclick =
+      (function(dataSelecionada, permitidoAgora, bloqueadoAgora){
+        return function(){
+          if(!permitidoAgora){
+            mostrarToast('🔒 Data fora do período disponível');
+            mostrarDetalhes(dataSelecionada);
+            return;
           }
-
-          else{
-
-            mostrarToast(
-              '🔒 Esta data está bloqueada'
-            );
-
+          if(bloqueadoAgora){
+            mostrarToast('🔒 Esta data está bloqueada');
+            mostrarDetalhes(dataSelecionada);
+            return;
           }
-
-          mostrarDetalhes(
-            data
-          );
-
+          abrirReserva(dataSelecionada);
         };
-
-    }
+      })(data, permitido, bloqueado);
 
 
     cal.appendChild(
@@ -2501,110 +2514,91 @@ function hj(){
 
 }
 
+
+function aplicarLimitesDatas(){
+  if(!PERIODO) return;
+  ['ie','is','ib'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.min = PERIODO.inicio;
+    el.max = PERIODO.fim;
+  });
+}
+
 /********************************************************
  * ABRIR RESERVA
- *
- * Se receber uma data, utiliza essa data
- * como entrada.
  ********************************************************/
 
-function abrirReserva(dataClicada){
+function abrirReserva(dataInicial){
 
   document
-    .getElementById('alertReserva')
-    .className = 'alert';
-
-
-  document
-    .getElementById('preReserva')
-    .style.display = 'none';
-
-
-  /*
-   * Se uma data foi clicada no calendário,
-   * ela vira a data de entrada.
-   *
-   * Caso contrário, usamos hoje.
-   */
-
-  var dataInicial =
-    dataClicada ||
-    (
-      PERIODO
-        ? PERIODO.inicio
-        : ''
-    );
+    .getElementById(
+      'alertReserva'
+    )
+    .className =
+      'alert';
 
 
   document
-    .getElementById('ie')
-    .value =
-    dataInicial;
-
-
-  /*
-   * Ao abrir uma nova reserva,
-   * a saída começa igual à entrada.
-   */
-
-  document
-    .getElementById('is')
-    .value =
-    dataInicial;
-
-
-  document
-    .getElementById('ip')
-    .value =
-    1;
-
-
-  document
-    .getElementById('ir')
-    .value =
-    '';
-
-
-  document
-    .getElementById('io')
-    .value =
-    '';
-
-
-  /*
-   * Limites dos campos de data.
-   */
-
-  if (PERIODO) {
-
-    document
-      .getElementById('ie')
-      .min =
-      PERIODO.inicio;
-
-    document
-      .getElementById('ie')
-      .max =
-      PERIODO.fim;
-
-
-    document
-      .getElementById('is')
-      .min =
-      PERIODO.inicio;
-
-    document
-      .getElementById('is')
-      .max =
-      PERIODO.fim;
-
-  }
-
-
-  document
-    .getElementById('modalReserva')
+    .getElementById(
+      'preReserva'
+    )
     .style.display =
-    'flex';
+      'none';
+
+
+  var dataPadrao =
+    dataInicial ||
+    (PERIODO ? PERIODO.inicio : '');
+
+  document
+    .getElementById(
+      'ie'
+    )
+    .value =
+      dataPadrao;
+
+
+  document
+    .getElementById(
+      'is'
+    )
+    .value =
+      dataPadrao;
+
+  aplicarLimitesDatas();
+
+
+  document
+    .getElementById(
+      'ip'
+    )
+    .value =
+      1;
+
+
+  document
+    .getElementById(
+      'ir'
+    )
+    .value =
+      '';
+
+
+  document
+    .getElementById(
+      'io'
+    )
+    .value =
+      '';
+
+
+  document
+    .getElementById(
+      'modalReserva'
+    )
+    .style.display =
+      'flex';
 
 
   validarReserva();
@@ -2625,6 +2619,8 @@ function abrirBloqueio(){
     .className =
       'alert';
 
+
+  aplicarLimitesDatas();
 
   document
     .getElementById(
@@ -2911,73 +2907,25 @@ function validarReserva(){
 
 }
 
+
 /********************************************************
  * SALVAR RESERVA
  ********************************************************/
 
 function salvarReserva(){
 
-  var e =
-    document
-      .getElementById('ie')
-      .value;
+  var e = document.getElementById('ie').value;
+  var s = document.getElementById('is').value;
+  var p = parseInt(document.getElementById('ip').value, 10);
+  var r = document.getElementById('ir').value.trim();
+  var o = document.getElementById('io').value.trim();
 
-  var s =
-    document
-      .getElementById('is')
-      .value;
-
-  var p =
-    parseInt(
-      document
-        .getElementById('ip')
-        .value,
-      10
-    );
-
-  var r =
-    document
-      .getElementById('ir')
-      .value
-      .trim();
-
-  var o =
-    document
-      .getElementById('io')
-      .value
-      .trim();
-
-
-  /*
-   * Verifica campos obrigatórios.
-   */
-
-  if(
-    !e ||
-    !s ||
-    !r
-  ){
-
-    alert(
-      '❌ Preencha entrada, saída e responsável.'
-    );
-
+  if(!e || !s || !r){
+    alert('❌ Preencha entrada, saída e responsável.');
     return;
   }
 
-
-  /*
-   * Executa todas as validações
-   * da reserva.
-   */
-
   validarReserva();
-
-
-  /*
-   * Se houver erro de validação,
-   * não salva.
-   */
 
   if(
     document
@@ -2985,129 +2933,61 @@ function salvarReserva(){
       .classList
       .contains('e')
   ){
-
     return;
   }
 
-
-  /*
-   * Botão de salvar.
-   */
-
   var btn =
-    document
-      .querySelector(
-        '#modalReserva .btn-save'
-      );
-
+    document.querySelector(
+      '#modalReserva .btn-save'
+    );
 
   btn.disabled = true;
+  btn.textContent = '⏳ Salvando...';
 
-  btn.textContent =
-    '⏳ Salvando...';
-
-
-  /*
-   * Envia a reserva para o
-   * Google Apps Script.
-   */
-
-  fetch(
-    API_URL +
-    '?api=1' +
-    '&action=saveBookingPeriodo' +
-    '&entrada=' +
-      encodeURIComponent(e) +
-    '&saida=' +
-      encodeURIComponent(s) +
-    '&pessoas=' +
-      encodeURIComponent(p) +
-    '&responsavel=' +
-      encodeURIComponent(r) +
-    '&observacoes=' +
-      encodeURIComponent(o)
-  )
-
-  .then(function(response){
-
-    if(!response.ok){
-
-      throw new Error(
-        'Erro HTTP: ' +
-        response.status
-      );
-
+  apiPost(
+    'saveBookingPeriodo',
+    {
+      entrada: e,
+      saida: s,
+      pessoas: p,
+      responsavel: r,
+      observacoes: o
     }
-
-    return response.json();
-
-  })
-
+  )
   .then(function(resp){
 
     btn.disabled = false;
+    btn.textContent = '💾 Salvar reserva';
 
-    btn.textContent =
-      '💾 Salvar reserva';
-
-
-    if(
-      resp &&
-      resp.ok
-    ){
-
+    if(resp && resp.ok){
       fecharModais();
-
-      mostrarToast(
-        '✅ Reserva criada!'
-      );
-
-      /*
-       * Recarrega os dados do
-       * Google Sheets e redesenha
-       * o calendário.
-       */
-
+      mostrarToast('✅ Reserva criada!');
       load();
-
-    }
-
-    else{
-
+    }else{
       alert(
         '❌ ' +
         (
-          resp &&
-          resp.msg
+          resp && resp.msg
             ? resp.msg
             : 'Não foi possível salvar.'
         )
       );
-
     }
-
   })
-
   .catch(function(err){
 
     btn.disabled = false;
-
-    btn.textContent =
-      '💾 Salvar reserva';
-
+    btn.textContent = '💾 Salvar reserva';
 
     alert(
       '❌ Erro ao salvar: ' +
       (
-        err &&
-        err.message
+        err && err.message
           ? err.message
           : err
       )
     );
-
   });
-
 }
 
 /********************************************************
@@ -3118,148 +2998,75 @@ function salvarBloqueio(){
 
   var data =
     document
-      .getElementById(
-        'ib'
-      )
+      .getElementById('ib')
       .value;
-
 
   var motivo =
     document
-      .getElementById(
-        'im'
-      )
+      .getElementById('im')
       .value
       .trim();
 
-
-  if(
-    !data
-  ){
-
-    alert(
-      '❌ Informe a data.'
-    );
-
+  if(!data){
+    alert('❌ Informe a data.');
     return;
-
   }
 
-
-  if(
-    !dataPermitida(
-      data
-    )
-  ){
-
-    alert(
-      '❌ Essa data está fora do período permitido.'
-    );
-
+  if(!dataPermitida(data)){
+    alert('❌ Essa data está fora do período permitido.');
     return;
-
   }
-
 
   var btn =
-    document
-      .querySelector(
-        '#modalBloqueio .btn-save'
+    document.querySelector(
+      '#modalBloqueio .btn-save'
+    );
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Salvando...';
+
+  apiPost(
+    'saveBlock',
+    {
+      data: data,
+      motivo: motivo
+    }
+  )
+  .then(function(resp){
+
+    btn.disabled = false;
+    btn.textContent = '🔒 Bloquear data';
+
+    if(resp && resp.ok){
+      fecharModais();
+      mostrarToast('🔒 Data bloqueada!');
+      load();
+    }else{
+      alert(
+        '❌ ' +
+        (
+          resp && resp.msg
+            ? resp.msg
+            : 'Não foi possível bloquear.'
+        )
       );
+    }
+  })
+  .catch(function(err){
 
-
-  btn.disabled =
-    true;
-
-  btn.textContent =
-    '⏳ Salvando...';
-
-
- fetch(
-  API_URL +
-  '?api=1' +
-  '&action=saveBlock' +
-  '&data=' + encodeURIComponent(data) +
-  '&motivo=' + encodeURIComponent(motivo)
-)
-
-.then(function(response){
-
-  if(!response.ok){
-
-    throw new Error(
-      'Erro HTTP: ' +
-      response.status
-    );
-
-  }
-
-  return response.json();
-
-})
-
-.then(function(resp){
-
-  btn.disabled =
-    false;
-
-  btn.textContent =
-    '🔒 Bloquear data';
-
-
-  if(
-    resp &&
-    resp.ok
-  ){
-
-    fecharModais();
-
-    mostrarToast(
-      '🔒 Data bloqueada!'
-    );
-
-    load();
-
-  }
-
-  else{
+    btn.disabled = false;
+    btn.textContent = '🔒 Bloquear data';
 
     alert(
-      '❌ ' +
+      '❌ Erro: ' +
       (
-        resp &&
-        resp.msg
-          ? resp.msg
-          : 'Não foi possível bloquear.'
+        err && err.message
+          ? err.message
+          : err
       )
     );
-
-  }
-
-})
-
-.catch(function(err){
-
-  btn.disabled =
-    false;
-
-  btn.textContent =
-    '🔒 Bloquear data';
-
-
-  alert(
-    '❌ Erro: ' +
-    (
-      err &&
-      err.message
-        ? err.message
-        : err
-    )
-  );
-
-});
+  });
 }
-
 
 /********************************************************
  * CANCELAR RESERVA
@@ -3269,85 +3076,41 @@ function cancelarReserva(
   id
 ){
 
-  if(
-    !confirm(
-      'Deseja realmente cancelar esta reserva?'
-    )
-  ){
-
+  if(!confirm('Deseja realmente cancelar esta reserva?')){
     return;
-
   }
 
+  apiPost(
+    'deleteBooking',
+    { id: id }
+  )
+  .then(function(resp){
 
- fetch(
-  API_URL +
-  '?api=1' +
-  '&action=deleteBooking' +
-  '&id=' + encodeURIComponent(id)
-)
-
-.then(function(response){
-
-  if(!response.ok){
-
-    throw new Error(
-      'Erro HTTP: ' +
-      response.status
-    );
-
-  }
-
-  return response.json();
-
-})
-
-.then(function(resp){
-
-  if(
-    resp &&
-    resp.ok
-  ){
-
-    mostrarToast(
-      '🗑️ Reserva cancelada!'
-    );
-
-    load();
-
-  }
-
-  else{
-
+    if(resp && resp.ok){
+      mostrarToast('🗑️ Reserva cancelada!');
+      load();
+    }else{
+      alert(
+        '❌ ' +
+        (
+          resp && resp.msg
+            ? resp.msg
+            : 'Erro ao cancelar.'
+        )
+      );
+    }
+  })
+  .catch(function(err){
     alert(
-      '❌ ' +
+      '❌ Erro ao cancelar: ' +
       (
-        resp &&
-        resp.msg
-          ? resp.msg
-          : 'Erro ao cancelar.'
+        err && err.message
+          ? err.message
+          : err
       )
     );
-
-  }
-
-})
-
-.catch(function(err){
-
-  alert(
-    '❌ Erro ao cancelar: ' +
-    (
-      err &&
-      err.message
-        ? err.message
-        : err
-    )
-  );
-
-});
+  });
 }
-
 
 /********************************************************
  * REMOVER BLOQUEIO
@@ -3357,127 +3120,49 @@ function removerBloqueioDoDia(
   data
 ){
 
-  if(
-    !confirm(
-      'Deseja remover o bloqueio desta data?'
-    )
-  ){
-
+  if(!confirm('Deseja remover o bloqueio desta data?')){
     return;
-
   }
 
+  var r = registroDia(data);
 
-  /*
-   * Obtém o registro correspondente
-   * à data clicada.
-   */
-
-  var r =
-    registroDia(
-      data
-    );
-
-
-  /*
-   * O backend agora devolve
-   * o ID real do bloqueio.
-   */
-
-  if(
-    !r ||
-    !r.bloqueioId
-  ){
-
+  if(!r || !r.bloqueioId){
     alert(
       '❌ Não foi possível localizar o ID do bloqueio.'
     );
-
     return;
-
   }
 
-
-  fetch(
-    API_URL +
-    '?api=1' +
-    '&action=deleteBlock' +
-    '&id=' +
-    encodeURIComponent(
-      r.bloqueioId
-    )
+  apiPost(
+    'deleteBlock',
+    { id: r.bloqueioId }
   )
+  .then(function(resp){
 
-  .then(
-    function(response){
-
-      if(
-        !response.ok
-      ){
-
-        throw new Error(
-          'Erro HTTP: ' +
-          response.status
-        );
-
-      }
-
-
-      return response.json();
-
-    }
-  )
-
-  .then(
-    function(resp){
-
-      if(
-        resp &&
-        resp.ok
-      ){
-
-        mostrarToast(
-          '🔓 Bloqueio removido!'
-        );
-
-
-        load();
-
-      }
-
-      else{
-
-        alert(
-          '❌ ' +
-          (
-            resp &&
-            resp.msg
-              ? resp.msg
-              : 'Não foi possível remover o bloqueio.'
-          )
-        );
-
-      }
-
-    }
-  )
-
-  .catch(
-    function(err){
-
+    if(resp && resp.ok){
+      mostrarToast('🔓 Bloqueio removido!');
+      load();
+    }else{
       alert(
-        '❌ Erro ao remover bloqueio: ' +
+        '❌ ' +
         (
-          err &&
-          err.message
-            ? err.message
-            : err
+          resp && resp.msg
+            ? resp.msg
+            : 'Não foi possível remover o bloqueio.'
         )
       );
-
     }
-  );
-
+  })
+  .catch(function(err){
+    alert(
+      '❌ Erro ao remover bloqueio: ' +
+      (
+        err && err.message
+          ? err.message
+          : err
+      )
+    );
+  });
 }
 
 /********************************************************
@@ -3525,9 +3210,47 @@ document
 
 
 /********************************************************
- * INICIALIZAÇÃO
+ * NAVEGAÇÃO POR DESLIZE NO CELULAR
  ********************************************************/
+var swipeInicioX = null;
+var swipeInicioY = null;
 
+function configurarSwipeCalendario(){
+  var cal = document.getElementById('cal');
+  if(!cal) return;
+
+  cal.addEventListener('touchstart', function(e){
+    if(!e.touches || !e.touches.length) return;
+    swipeInicioX = e.touches[0].clientX;
+    swipeInicioY = e.touches[0].clientY;
+  }, {passive:true});
+
+  cal.addEventListener('touchend', function(e){
+    if(swipeInicioX === null || !e.changedTouches || !e.changedTouches.length) return;
+    var dx = e.changedTouches[0].clientX - swipeInicioX;
+    var dy = e.changedTouches[0].clientY - swipeInicioY;
+    swipeInicioX = null;
+    swipeInicioY = null;
+
+    if(Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+
+    if(dx > 0){
+      cal.classList.remove('swipe-left');
+      cal.classList.add('swipe-right');
+      mv(1);
+    }else{
+      cal.classList.remove('swipe-right');
+      cal.classList.add('swipe-left');
+      mv(-1);
+    }
+
+    setTimeout(function(){
+      cal.classList.remove('swipe-left','swipe-right');
+    }, 200);
+  }, {passive:true});
+}
+
+configurarSwipeCalendario();
 load();
 
 
@@ -3613,145 +3336,8 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
-    /********************************************************
- * GESTOS DE DESLIZAMENTO NO CELULAR
- *
- * Deslizar para a esquerda:
- *    próximo mês
- *
- * Deslizar para a direita:
- *    mês anterior
- ********************************************************/
 
-(function(){
-
-  var calendario =
-    document.getElementById('cal');
-
-
-  if(!calendario){
-    return;
-  }
-
-
-  var inicioX = null;
-  var inicioY = null;
-
-
-  calendario.addEventListener(
-    'touchstart',
-    function(e){
-
-      if(
-        !e.touches ||
-        !e.touches.length
-      ){
-        return;
-      }
-
-
-      inicioX =
-        e.touches[0].clientX;
-
-      inicioY =
-        e.touches[0].clientY;
-
-    },
-    {
-      passive: true
-    }
-  );
-
-
-  calendario.addEventListener(
-    'touchend',
-    function(e){
-
-      if(
-        inicioX === null ||
-        inicioY === null ||
-        !e.changedTouches ||
-        !e.changedTouches.length
-      ){
-
-        inicioX = null;
-        inicioY = null;
-
-        return;
-
-      }
-
-
-      var fimX =
-        e.changedTouches[0].clientX;
-
-      var fimY =
-        e.changedTouches[0].clientY;
-
-
-      var deslocamentoX =
-        fimX - inicioX;
-
-      var deslocamentoY =
-        fimY - inicioY;
-
-
-      /*
-       * Ignora movimentos pequenos.
-       */
-
-      var distanciaMinima = 50;
-
-
-      /*
-       * Só consideramos swipe horizontal.
-       */
-
-      if(
-        Math.abs(deslocamentoX) >=
-        distanciaMinima
-        &&
-        Math.abs(deslocamentoX) >
-        Math.abs(deslocamentoY)
-      ){
-
-      if(
-  deslocamentoX > 0
-){
-
-  /*
-   * Direita =
-   * próximo mês
-   */
-
-  mv(1);
-
-}
-
-else{
-
-  /*
-   * Esquerda =
-   * mês anterior
-   */
-
-  mv(-1);
-
-}
-      }
-
-
-      inicioX = null;
-      inicioY = null;
-
-    },
-    {
-      passive: true
-    }
-  );
-
-})();
- </script>
+</script>
 
 </body>
 </html>
