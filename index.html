@@ -1592,15 +1592,18 @@ function registroDia(data){
 
   return R[data] ||
     {
-      totalPessoas:0,
 
-      reservas:[],
+      totalPessoas: 0,
 
-      bloqueado:false
+      reservas: [],
+
+      bloqueado: false,
+
+      bloqueioId: null
+
     };
 
 }
-
 
 /********************************************************
  * COR DA OCUPAÇÃO
@@ -1989,20 +1992,25 @@ function render(){
       !bloqueado
     ){
 
-      dv.onclick =
-        (function(
-          dataSelecionada
-        ){
+dv.onclick =
+  (function(dataSelecionada){
 
-          return function(){
+    return function(){
 
-            mostrarDetalhes(
-              dataSelecionada
-            );
+      /*
+       * Ao tocar em uma data disponível,
+       * abre diretamente o formulário
+       * de nova reserva.
+       */
 
-          };
+      abrirReserva(
+        dataSelecionada
+      );
 
-        })(data);
+    };
+
+  })(data);
+
 
     }
 
@@ -2493,79 +2501,110 @@ function hj(){
 
 }
 
-
 /********************************************************
  * ABRIR RESERVA
+ *
+ * Se receber uma data, utiliza essa data
+ * como entrada.
  ********************************************************/
 
-function abrirReserva(){
+function abrirReserva(dataClicada){
 
   document
-    .getElementById(
-      'alertReserva'
-    )
-    .className =
-      'alert';
+    .getElementById('alertReserva')
+    .className = 'alert';
 
 
   document
-    .getElementById(
-      'preReserva'
-    )
-    .style.display =
-      'none';
+    .getElementById('preReserva')
+    .style.display = 'none';
 
 
-  document
-    .getElementById(
-      'ie'
-    )
-    .value =
+  /*
+   * Se uma data foi clicada no calendário,
+   * ela vira a data de entrada.
+   *
+   * Caso contrário, usamos hoje.
+   */
+
+  var dataInicial =
+    dataClicada ||
+    (
       PERIODO
         ? PERIODO.inicio
-        : '';
+        : ''
+    );
 
 
   document
-    .getElementById(
-      'is'
-    )
+    .getElementById('ie')
     .value =
-      PERIODO
-        ? PERIODO.inicio
-        : '';
+    dataInicial;
 
+
+  /*
+   * Ao abrir uma nova reserva,
+   * a saída começa igual à entrada.
+   */
 
   document
-    .getElementById(
-      'ip'
-    )
+    .getElementById('is')
     .value =
-      1;
+    dataInicial;
 
 
   document
-    .getElementById(
-      'ir'
-    )
+    .getElementById('ip')
     .value =
-      '';
+    1;
 
 
   document
-    .getElementById(
-      'io'
-    )
+    .getElementById('ir')
     .value =
-      '';
+    '';
 
 
   document
-    .getElementById(
-      'modalReserva'
-    )
+    .getElementById('io')
+    .value =
+    '';
+
+
+  /*
+   * Limites dos campos de data.
+   */
+
+  if (PERIODO) {
+
+    document
+      .getElementById('ie')
+      .min =
+      PERIODO.inicio;
+
+    document
+      .getElementById('ie')
+      .max =
+      PERIODO.fim;
+
+
+    document
+      .getElementById('is')
+      .min =
+      PERIODO.inicio;
+
+    document
+      .getElementById('is')
+      .max =
+      PERIODO.fim;
+
+  }
+
+
+  document
+    .getElementById('modalReserva')
     .style.display =
-      'flex';
+    'flex';
 
 
   validarReserva();
@@ -3020,6 +3059,146 @@ function salvarReserva(){
 
     load();
 
+    /********************************************************
+ * GESTOS DE DESLIZAMENTO NO CELULAR
+ *
+ * Deslizar para a esquerda:
+ *    próximo mês
+ *
+ * Deslizar para a direita:
+ *    mês anterior
+ ********************************************************/
+
+(function(){
+
+  var calendario =
+    document.getElementById('cal');
+
+
+  if(!calendario){
+    return;
+  }
+
+
+  var inicioX = null;
+  var inicioY = null;
+
+
+  calendario.addEventListener(
+    'touchstart',
+    function(e){
+
+      if(
+        !e.touches ||
+        !e.touches.length
+      ){
+        return;
+      }
+
+
+      inicioX =
+        e.touches[0].clientX;
+
+      inicioY =
+        e.touches[0].clientY;
+
+    },
+    {
+      passive: true
+    }
+  );
+
+
+  calendario.addEventListener(
+    'touchend',
+    function(e){
+
+      if(
+        inicioX === null ||
+        inicioY === null ||
+        !e.changedTouches ||
+        !e.changedTouches.length
+      ){
+
+        inicioX = null;
+        inicioY = null;
+
+        return;
+
+      }
+
+
+      var fimX =
+        e.changedTouches[0].clientX;
+
+      var fimY =
+        e.changedTouches[0].clientY;
+
+
+      var deslocamentoX =
+        fimX - inicioX;
+
+      var deslocamentoY =
+        fimY - inicioY;
+
+
+      /*
+       * Ignora movimentos pequenos.
+       */
+
+      var distanciaMinima = 50;
+
+
+      /*
+       * Só consideramos swipe horizontal.
+       */
+
+      if(
+        Math.abs(deslocamentoX) >=
+        distanciaMinima
+        &&
+        Math.abs(deslocamentoX) >
+        Math.abs(deslocamentoY)
+      ){
+
+        if(
+          deslocamentoX < 0
+        ){
+
+          /*
+           * Esquerda =
+           * próximo mês
+           */
+
+          mv(1);
+
+        }
+
+        else{
+
+          /*
+           * Direita =
+           * mês anterior
+           */
+
+          mv(-1);
+
+        }
+
+      }
+
+
+      inicioX = null;
+      inicioY = null;
+
+    },
+    {
+      passive: true
+    }
+  );
+
+})();
+
   }
 
   else{
@@ -3320,6 +3499,11 @@ function removerBloqueioDoDia(
   }
 
 
+  /*
+   * Obtém o registro correspondente
+   * à data clicada.
+   */
+
   var r =
     registroDia(
       data
@@ -3327,28 +3511,105 @@ function removerBloqueioDoDia(
 
 
   /*
-   * O GS atual retorna apenas
-   * bloqueado:true no agrupamento.
-   *
-   * Como deleteBlock exige o ID,
-   * precisamos localizar o ID.
-   *
-   * A versão atual do GS não devolve
-   * o ID do bloqueio.
-   *
-   * Por isso, esta função utiliza
-   * uma confirmação e informa que
-   * a remoção automática depende
-   * da versão do backend que retorna
-   * o ID do bloqueio.
+   * O backend agora devolve
+   * o ID real do bloqueio.
    */
 
-  alert(
-    'Para remover este bloqueio, o backend precisa retornar o ID do bloqueio associado à data.'
+  if(
+    !r ||
+    !r.bloqueioId
+  ){
+
+    alert(
+      '❌ Não foi possível localizar o ID do bloqueio.'
+    );
+
+    return;
+
+  }
+
+
+  fetch(
+    API_URL +
+    '?api=1' +
+    '&action=deleteBlock' +
+    '&id=' +
+    encodeURIComponent(
+      r.bloqueioId
+    )
+  )
+
+  .then(
+    function(response){
+
+      if(
+        !response.ok
+      ){
+
+        throw new Error(
+          'Erro HTTP: ' +
+          response.status
+        );
+
+      }
+
+
+      return response.json();
+
+    }
+  )
+
+  .then(
+    function(resp){
+
+      if(
+        resp &&
+        resp.ok
+      ){
+
+        mostrarToast(
+          '🔓 Bloqueio removido!'
+        );
+
+
+        load();
+
+      }
+
+      else{
+
+        alert(
+          '❌ ' +
+          (
+            resp &&
+            resp.msg
+              ? resp.msg
+              : 'Não foi possível remover o bloqueio.'
+          )
+        );
+
+      }
+
+    }
+  )
+
+  .catch(
+    function(err){
+
+      alert(
+        '❌ Erro ao remover bloqueio: ' +
+        (
+          err &&
+          err.message
+            ? err.message
+            : err
+        )
+      );
+
+    }
   );
 
 }
-
 
 /********************************************************
  * FECHAR MODAL CLICANDO FORA
