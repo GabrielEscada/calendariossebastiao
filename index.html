@@ -1117,7 +1117,7 @@ onclick="load()">
 
   <div class="mod-box">
 
-    <h3>
+    <h3 id="tituloModalReserva">
       📅 Nova Reserva
     </h3>
 
@@ -1207,6 +1207,7 @@ onclick="load()">
 
     <button
       class="btn btn-save"
+      id="btnSalvarReserva"
       onclick="salvarReserva()">
 
       💾 Salvar reserva
@@ -1399,6 +1400,8 @@ var R = {};
 var PERIODO = null;
 
 var DATA_SELECIONADA = null;
+
+var RESERVA_EM_EDICAO_ID = null;
 
 var TIMER_TOAST = null;
 
@@ -2042,21 +2045,34 @@ function render(){
 
 
     dv.onclick =
-      (function(dataSelecionada, permitidoAgora, bloqueadoAgora){
+      (function(dataSelecionada, permitidoAgora, bloqueadoAgora, temReservaAgora){
         return function(){
+
+          if(temReservaAgora){
+            mostrarDetalhes(dataSelecionada);
+            return;
+          }
+
           if(!permitidoAgora){
             mostrarToast('🔒 Data fora do período disponível');
             mostrarDetalhes(dataSelecionada);
             return;
           }
+
           if(bloqueadoAgora){
             mostrarToast('🔒 Esta data está bloqueada');
             mostrarDetalhes(dataSelecionada);
             return;
           }
+
           abrirReserva(dataSelecionada);
         };
-      })(data, permitido, bloqueado);
+      })(
+        data,
+        permitido,
+        bloqueado,
+        !!(registro && registro.reservas && registro.reservas.length)
+      );
 
 
     cal.appendChild(
@@ -2370,6 +2386,18 @@ function mostrarDetalhes(
 
         html +=
 
+          '<button class="btn btn-save" style="margin-top:6px" ' +
+
+          'onclick="alterarReserva(\'' +
+
+          reserva.id +
+
+          '\')">' +
+
+          '✏️ Alterar esta reserva' +
+
+          '</button>' +
+
           '<button class="btn-remover" ' +
 
           'onclick="cancelarReserva(\'' +
@@ -2531,6 +2559,11 @@ function aplicarLimitesDatas(){
 
 function abrirReserva(dataInicial){
 
+  RESERVA_EM_EDICAO_ID = null;
+
+  document.getElementById('tituloModalReserva').textContent = '📅 Nova Reserva';
+  document.getElementById('btnSalvarReserva').textContent = '💾 Salvar reserva';
+
   document
     .getElementById(
       'alertReserva'
@@ -2607,6 +2640,60 @@ function abrirReserva(dataInicial){
 
 
 /********************************************************
+ * ALTERAR RESERVA
+ ********************************************************/
+
+function alterarReserva(id){
+
+  var reservaEncontrada = null;
+
+  Object.keys(R || {}).some(function(data){
+
+    var registro = R[data];
+
+    if(!registro || !registro.reservas){
+      return false;
+    }
+
+    var encontrada = registro.reservas.find(function(reserva){
+      return String(reserva.id) === String(id);
+    });
+
+    if(encontrada){
+      reservaEncontrada = encontrada;
+      return true;
+    }
+
+    return false;
+  });
+
+  if(!reservaEncontrada){
+    alert('❌ Não foi possível localizar a reserva.');
+    return;
+  }
+
+  RESERVA_EM_EDICAO_ID = String(id);
+
+  document.getElementById('tituloModalReserva').textContent = '✏️ Alterar Reserva';
+  document.getElementById('btnSalvarReserva').textContent = '💾 Salvar alterações';
+  document.getElementById('alertReserva').className = 'alert';
+  document.getElementById('preReserva').style.display = 'none';
+
+  document.getElementById('ie').value = reservaEncontrada.entrada || '';
+  document.getElementById('is').value = reservaEncontrada.saida || '';
+  document.getElementById('ip').value = reservaEncontrada.pessoas || 1;
+  document.getElementById('ir').value = reservaEncontrada.responsavel || '';
+  document.getElementById('io').value = reservaEncontrada.observacoes || '';
+
+  aplicarLimitesDatas();
+
+  document.getElementById('modalReserva').style.display = 'flex';
+
+  validarReserva();
+}
+
+
+/********************************************************
  * ABRIR BLOQUEIO
  ********************************************************/
 
@@ -2655,6 +2742,14 @@ function abrirBloqueio(){
  ********************************************************/
 
 function fecharModais(){
+
+  RESERVA_EM_EDICAO_ID = null;
+
+  var titulo = document.getElementById('tituloModalReserva');
+  if(titulo){ titulo.textContent = '📅 Nova Reserva'; }
+
+  var btnReserva = document.getElementById('btnSalvarReserva');
+  if(btnReserva){ btnReserva.textContent = '💾 Salvar reserva'; }
 
   document
     .getElementById(
@@ -2825,8 +2920,19 @@ function validarReserva(){
     }
 
 
+    var pessoasOutrasReservas =
+      r.totalPessoas;
+
+    if(RESERVA_EM_EDICAO_ID && r.reservas){
+      r.reservas.forEach(function(reservaExistente){
+        if(String(reservaExistente.id) === String(RESERVA_EM_EDICAO_ID)){
+          pessoasOutrasReservas -= Number(reservaExistente.pessoas) || 0;
+        }
+      });
+    }
+
     if(
-      r.totalPessoas +
+      pessoasOutrasReservas +
       p >
       13
     ){
@@ -2944,15 +3050,26 @@ function salvarReserva(){
   btn.disabled = true;
   btn.textContent = '⏳ Salvando...';
 
+  var acaoReserva =
+    RESERVA_EM_EDICAO_ID
+      ? 'updateBooking'
+      : 'saveBookingPeriodo';
+
+  var dadosReserva = {
+    entrada: e,
+    saida: s,
+    pessoas: p,
+    responsavel: r,
+    observacoes: o
+  };
+
+  if(RESERVA_EM_EDICAO_ID){
+    dadosReserva.id = RESERVA_EM_EDICAO_ID;
+  }
+
   apiPost(
-    'saveBookingPeriodo',
-    {
-      entrada: e,
-      saida: s,
-      pessoas: p,
-      responsavel: r,
-      observacoes: o
-    }
+    acaoReserva,
+    dadosReserva
   )
   .then(function(resp){
 
@@ -2960,8 +3077,9 @@ function salvarReserva(){
     btn.textContent = '💾 Salvar reserva';
 
     if(resp && resp.ok){
+      var eraEdicao = !!RESERVA_EM_EDICAO_ID;
       fecharModais();
-      mostrarToast('✅ Reserva criada!');
+      mostrarToast(eraEdicao ? '✅ Reserva alterada!' : '✅ Reserva criada!');
       load();
     }else{
       alert(
