@@ -3355,11 +3355,11 @@ function configurarSwipeCalendario(){
     if(dx > 0){
       cal.classList.remove('swipe-left');
       cal.classList.add('swipe-right');
-      mv(1);
+      mv(-1);
     }else{
       cal.classList.remove('swipe-right');
       cal.classList.add('swipe-left');
-      mv(-1);
+      mv(1);
     }
 
     setTimeout(function(){
