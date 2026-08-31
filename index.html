@@ -2911,7 +2911,6 @@ function validarReserva(){
 
 }
 
-
 /********************************************************
  * SALVAR RESERVA
  ********************************************************/
@@ -2920,48 +2919,38 @@ function salvarReserva(){
 
   var e =
     document
-      .getElementById(
-        'ie'
-      )
+      .getElementById('ie')
       .value;
-
 
   var s =
     document
-      .getElementById(
-        'is'
-      )
+      .getElementById('is')
       .value;
-
 
   var p =
     parseInt(
       document
-        .getElementById(
-          'ip'
-        )
+        .getElementById('ip')
         .value,
       10
     );
 
-
   var r =
     document
-      .getElementById(
-        'ir'
-      )
+      .getElementById('ir')
       .value
       .trim();
-
 
   var o =
     document
-      .getElementById(
-        'io'
-      )
+      .getElementById('io')
       .value
       .trim();
 
+
+  /*
+   * Verifica campos obrigatórios.
+   */
 
   if(
     !e ||
@@ -2974,28 +2963,36 @@ function salvarReserva(){
     );
 
     return;
-
   }
 
+
+  /*
+   * Executa todas as validações
+   * da reserva.
+   */
 
   validarReserva();
 
 
+  /*
+   * Se houver erro de validação,
+   * não salva.
+   */
+
   if(
     document
-      .getElementById(
-        'alertReserva'
-      )
+      .getElementById('alertReserva')
       .classList
-      .contains(
-        'e'
-      )
+      .contains('e')
   ){
 
     return;
-
   }
 
+
+  /*
+   * Botão de salvar.
+   */
 
   var btn =
     document
@@ -3004,84 +3001,114 @@ function salvarReserva(){
       );
 
 
-  btn.disabled =
-    true;
+  btn.disabled = true;
 
   btn.textContent =
     '⏳ Salvando...';
 
 
+  /*
+   * Envia a reserva para o
+   * Google Apps Script.
+   */
+
   fetch(
-  API_URL +
-  '?api=1' +
-  '&action=saveBookingPeriodo' +
-  '&entrada=' + encodeURIComponent(e) +
-  '&saida=' + encodeURIComponent(s) +
-  '&pessoas=' + encodeURIComponent(p) +
-  '&responsavel=' + encodeURIComponent(r) +
-  '&observacoes=' + encodeURIComponent(o)
-)
+    API_URL +
+    '?api=1' +
+    '&action=saveBookingPeriodo' +
+    '&entrada=' +
+      encodeURIComponent(e) +
+    '&saida=' +
+      encodeURIComponent(s) +
+    '&pessoas=' +
+      encodeURIComponent(p) +
+    '&responsavel=' +
+      encodeURIComponent(r) +
+    '&observacoes=' +
+      encodeURIComponent(o)
+  )
 
-.then(function(response){
+  .then(function(response){
 
-  if(!response.ok){
+    if(!response.ok){
 
-    throw new Error(
-      'Erro HTTP: ' +
-      response.status
+      throw new Error(
+        'Erro HTTP: ' +
+        response.status
+      );
+
+    }
+
+    return response.json();
+
+  })
+
+  .then(function(resp){
+
+    btn.disabled = false;
+
+    btn.textContent =
+      '💾 Salvar reserva';
+
+
+    if(
+      resp &&
+      resp.ok
+    ){
+
+      fecharModais();
+
+      mostrarToast(
+        '✅ Reserva criada!'
+      );
+
+      /*
+       * Recarrega os dados do
+       * Google Sheets e redesenha
+       * o calendário.
+       */
+
+      load();
+
+    }
+
+    else{
+
+      alert(
+        '❌ ' +
+        (
+          resp &&
+          resp.msg
+            ? resp.msg
+            : 'Não foi possível salvar.'
+        )
+      );
+
+    }
+
+  })
+
+  .catch(function(err){
+
+    btn.disabled = false;
+
+    btn.textContent =
+      '💾 Salvar reserva';
+
+
+    alert(
+      '❌ Erro ao salvar: ' +
+      (
+        err &&
+        err.message
+          ? err.message
+          : err
+      )
     );
 
-  }
-
-  return response.json();
-
-})
-
-.then(function(resp){
-
-  btn.disabled =
-    false;
-
-  btn.textContent =
-    '💾 Salvar reserva';
-
-
-  if(
-    resp &&
-    resp.ok
-  ){
-
-    fecharModais();
-
-    mostrarToast(
-      '✅ Reserva criada!'
-    );
-
-    load();
-
-.catch(function(err){
-
-  btn.disabled =
-    false;
-
-  btn.textContent =
-    '💾 Salvar reserva';
-
-
-  alert(
-    '❌ Erro ao salvar: ' +
-    (
-      err &&
-      err.message
-        ? err.message
-        : err
-    )
-  );
-
-});
+  });
 
 }
-
 
 /********************************************************
  * SALVAR BLOQUEIO
