@@ -883,6 +883,39 @@
   font-size:14px;
   line-height:1.4;
 }
+    .aviso-ios{
+      position:fixed;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      z-index:10000;
+      background:#ffffff;
+      color:#222;
+      border:2px solid #1e90ff;
+      border-radius:12px;
+      padding:14px;
+      box-shadow:0 4px 18px rgba(0,0,0,.25);
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    .aviso-ios strong{
+      color:#1e90ff;
+    }
+
+    .btn-ios-fechar{
+      display:block;
+      width:100%;
+      margin-top:10px;
+      padding:8px;
+      border:0;
+      border-radius:7px;
+      background:#1e90ff;
+      color:#fff;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
     /* FIM — aviso de instalação iOS */
 
   </style>
@@ -1110,21 +1143,27 @@
   <div class="install-content">
     <div class="install-text">
       <h3>📱 Instale o App</h3>
-     <div
-  id="avisoIOS"
-  class="aviso-ios"
-  style="display:none;"
->
-  <strong>🍎 Instalar no iPhone</strong><br>
-  Toque em <strong>Compartilhar</strong> e depois em
-  <strong>Adicionar à Tela de Início</strong>.
-       
-</div>
       <p>Adicione à tela inicial para acesso rápido</p>
     </div>
     <button id="installBtn" class="btn-install">Instalar</button>
     <button id="closeBannerBtn" class="btn-close-install">✕</button>
   </div>
+</div>
+
+<!-- INSTRUÇÃO ESPECÍFICA PARA iOS -->
+<div
+  id="avisoIOS"
+  class="aviso-ios"
+  style="display:none;"
+>
+  <strong>🍎 Instalar no iPhone/iPad</strong><br>
+  Toque em <strong>Compartilhar</strong> e depois em
+  <strong>Adicionar à Tela de Início</strong>.
+  <button
+    type="button"
+    class="btn-ios-fechar"
+    onclick="document.getElementById('avisoIOS').style.display='none';"
+  >Entendi</button>
 </div>
 
 <!-- ATUALIZAR -->
@@ -1604,7 +1643,35 @@ function jsonpRequest(action, dados, tentativa) {
 
   });
 
-}  
+}
+
+/********************************************************
+ * ATALHOS PARA A API
+ *
+ * Todas as operações usam JSONP porque o aplicativo está
+ * hospedado no GitHub Pages e a API no Google Apps Script.
+ ********************************************************/
+
+function apiGet(action){
+
+  return jsonpRequest(
+    action,
+    {}
+  );
+
+}
+
+
+function apiPost(action, dados){
+
+  return jsonpRequest(
+    action,
+    dados || {}
+  );
+
+}
+
+
 /********************************************************
  * VARIÁVEIS
  ********************************************************/
@@ -2857,7 +2924,6 @@ function abrirReserva(dataInicial){
   }
 
   RESERVA_EM_EDICAO_ID = null;
-  RESERVA_EM_EDICAO_ID = null;
 
   document.getElementById('tituloModalReserva').textContent = '📅 Nova Reserva';
   document.getElementById('btnSalvarReserva').textContent = '💾 Salvar reserva';
@@ -3652,21 +3718,21 @@ function configurarSwipeCalendario(){
 
 if(dx > 0){
 
-  // ARRASTAR PARA A DIREITA → MÊS ANTERIOR
+  // ARRASTAR PARA A DIREITA → MÊS SEGUINTE
 
   cal.classList.remove('swipe-left');
   cal.classList.add('swipe-right');
 
-  mv(-1);
+  mv(1);
 
 }else if(dx < 0){
 
-  // ARRASTAR PARA A ESQUERDA → MÊS SEGUINTE
+  // ARRASTAR PARA A ESQUERDA → MÊS ANTERIOR
 
   cal.classList.remove('swipe-right');
   cal.classList.add('swipe-left');
 
-  mv(1);
+  mv(-1);
 
 }
 
@@ -3697,7 +3763,12 @@ if (isPWAInstalled()) {
 
 // VARIÁVEIS PARA INSTALAÇÃO
 let deferredPrompt;
-let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+let isIOS =
+  /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+  (
+    navigator.platform === 'MacIntel' &&
+    navigator.maxTouchPoints > 1
+  );
 
 // EVENTO DE INSTALAÇÃO (ANDROID/CHROME)
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -3718,8 +3789,8 @@ window.addEventListener('appinstalled', () => {
 // FUNÇÃO PARA INSTALAR
 document.getElementById('installBtn').addEventListener('click', async () => {
   if (isIOS) {
-    // PARA IPHONE
-    alert('📱 Para instalar no iPhone:\n\n1. Toque no ícone de Compartilhar (⬆️)\n2. Role para baixo e toque em "Adicionar à Tela Inicial"\n3. Toque em "Adicionar"');
+    // PARA IPHONE/IPAD
+    mostrarInstrucaoIOS();
     document.getElementById('installBanner').classList.remove('show');
     return;
   }
