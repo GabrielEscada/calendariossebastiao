@@ -884,6 +884,7 @@
 
     <button
       class="btn-top"
+      data-requer-dados
       onclick="abrirReserva()">
 
       ➕ Reserva
@@ -999,6 +1000,7 @@
 
     <button
       class="btn-acao btn-bloqueio"
+      data-requer-dados
       onclick="abrirBloqueio()">
 
       🔒 Bloquear data
@@ -1296,94 +1298,231 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbz37mw-ccz0zGZGVGEY2gbq
  * Por isso, as chamadas à API são feitas por JSONP, evitando o bloqueio
  * de leitura causado pelo CORS do fetch().
  */
-function jsonpRequest(action, dados) {
+function jsonpRequest(action, dados, tentativa) {
+
+  tentativa =
+    tentativa || 1;
 
   return new Promise(function(resolve, reject) {
 
     var callbackName =
       '__casaSebastiao_' +
       Date.now() + '_' +
-      Math.floor(Math.random() * 1000000);
+      Math.floor(
+        Math.random() * 1000000
+      );
 
     var script =
-      document.createElement('script');
+      document.createElement(
+        'script'
+      );
 
-    var params = new URLSearchParams();
+    var params =
+      new URLSearchParams();
 
-    params.append('api', '1');
-    params.append('action', action);
-    params.append('callback', callbackName);
 
-    Object.keys(dados || {}).forEach(function(chave) {
+    params.append(
+      'api',
+      '1'
+    );
+
+    params.append(
+      'action',
+      action
+    );
+
+    params.append(
+      'callback',
+      callbackName
+    );
+
+
+    /*
+     * Impede que navegador ou PWA
+     * reaproveite uma resposta antiga.
+     */
+
+    params.append(
+      '_cache',
+      Date.now()
+    );
+
+
+    Object.keys(
+      dados || {}
+    ).forEach(function(chave){
+
       params.append(
         chave,
         dados[chave] == null
           ? ''
           : dados[chave]
       );
+
     });
+
 
     var timer = null;
 
-    function limpar() {
-      if (timer) {
+
+    function limpar(){
+
+      if(timer){
+
         clearTimeout(timer);
+
         timer = null;
+
       }
 
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
+
+      if(
+        script.parentNode
+      ){
+
+        script.parentNode
+          .removeChild(script);
+
       }
 
-      try {
-        delete window[callbackName];
-      } catch (e) {
-        window[callbackName] = undefined;
+
+      try{
+
+        delete window[
+          callbackName
+        ];
+
+      }catch(e){
+
+        window[
+          callbackName
+        ] = undefined;
+
       }
+
     }
 
-    window[callbackName] = function(resposta) {
+
+    window[
+      callbackName
+    ] = function(resposta){
+
       limpar();
+
       resolve(resposta);
+
     };
 
-    script.onerror = function() {
-      limpar();
-      reject(
-        new Error(
-          'Não foi possível acessar o Google Apps Script.'
-        )
-      );
-    };
+
+    script.onerror =
+      function(){
+
+        limpar();
+
+
+        /*
+         * Faz uma segunda tentativa
+         * em caso de falha de rede,
+         * bloqueio momentâneo ou
+         * problema de carregamento.
+         */
+
+        if(
+          tentativa < 2
+        ){
+
+          setTimeout(
+            function(){
+
+              jsonpRequest(
+                action,
+                dados,
+                tentativa + 1
+              )
+              .then(resolve)
+              .catch(reject);
+
+            },
+            1000
+          );
+
+          return;
+
+        }
+
+
+        reject(
+          new Error(
+            'Não foi possível acessar o Google Apps Script após duas tentativas.'
+          )
+        );
+
+      };
+
 
     script.src =
       API_URL +
       '?' +
       params.toString();
 
-    document.head.appendChild(script);
 
-    timer = setTimeout(function() {
-      limpar();
-      reject(
-        new Error(
-          'Tempo esgotado ao acessar a API.'
-        )
+    script.async = true;
+
+
+    document
+      .head
+      .appendChild(
+        script
       );
-    }, 20000);
+
+
+    /*
+     * 20 segundos por tentativa.
+     */
+
+    timer =
+      setTimeout(
+        function(){
+
+          limpar();
+
+
+          if(
+            tentativa < 2
+          ){
+
+            setTimeout(
+              function(){
+
+                jsonpRequest(
+                  action,
+                  dados,
+                  tentativa + 1
+                )
+                .then(resolve)
+                .catch(reject);
+
+              },
+              1000
+            );
+
+          }else{
+
+            reject(
+              new Error(
+                'Tempo esgotado ao acessar o Google Apps Script.'
+              )
+            );
+
+          }
+
+        },
+        20000
+      );
+
   });
-}
 
-
-async function apiGet(action) {
-  return await jsonpRequest(action, {});
-}
-
-
-async function apiPost(action, dados) {
-  return await jsonpRequest(action, dados || {});
-}
-  
+}  
 /********************************************************
  * VARIÁVEIS
  ********************************************************/
@@ -1718,32 +1857,95 @@ function corOcupacao(
  * CARREGAR DADOS
  ********************************************************/
 
+  function definirBotoesCarregamento(carregando){
+
+  var botoes =
+    document.querySelectorAll(
+      '[data-requer-dados]'
+    );
+
+  botoes.forEach(function(botao){
+
+    botao.disabled =
+      carregando;
+
+    if(carregando){
+
+      botao.style.opacity =
+        '0.5';
+
+      botao.style.pointerEvents =
+        'none';
+
+    }else{
+
+      botao.style.opacity =
+        '';
+
+      botao.style.pointerEvents =
+        '';
+
+    }
+
+  });
+
+}
+  
 function load(){
 
-  status(
-    'carregando'
-  );
+  status('carregando');
+
+  definirBotoesCarregamento(true);
 
 
- apiGet('getBookings')
-  .then(function(data){
+  Promise.all([
 
-    R = data || {};
+    apiGet('getBookings'),
 
-    return apiGet('getPeriodoPermitido');
+    apiGet('getPeriodoPermitido')
 
-  })
-  .then(function(periodo){
+  ])
 
-    PERIODO = periodo;
+  .then(function(resultados){
+
+    /*
+     * Resultado 0 = reservas
+     * Resultado 1 = período
+     */
+
+    R =
+      resultados[0] || {};
+
+
+    PERIODO =
+      resultados[1] || null;
+
+
+    if(
+      !PERIODO ||
+      !PERIODO.inicio ||
+      !PERIODO.fim
+    ){
+
+      throw new Error(
+        'O período permitido não foi recebido corretamente.'
+      );
+
+    }
+
 
     status('ok');
 
     atualizarPeriodo();
 
+    definirBotoesCarregamento(false);
+
     render();
 
-    if(DATA_SELECIONADA){
+
+    if(
+      DATA_SELECIONADA
+    ){
 
       mostrarDetalhes(
         DATA_SELECIONADA
@@ -1751,12 +1953,17 @@ function load(){
 
     }
 
+
     atualizarEstatisticas();
 
   })
+
   .catch(function(err){
 
     status('erro');
+
+    definirBotoesCarregamento(true);
+
 
     alert(
       'Erro ao carregar dados: ' +
@@ -1771,7 +1978,6 @@ function load(){
   });
 
 }
-
 /********************************************************
  * TEXTO DO PERÍODO
  ********************************************************/
@@ -2559,6 +2765,16 @@ function aplicarLimitesDatas(){
 
 function abrirReserva(dataInicial){
 
+  if(!PERIODO){
+
+    alert(
+      '⏳ Aguarde o calendário terminar de carregar antes de fazer uma reserva.'
+    );
+
+    return;
+  }
+
+  RESERVA_EM_EDICAO_ID = null;
   RESERVA_EM_EDICAO_ID = null;
 
   document.getElementById('tituloModalReserva').textContent = '📅 Nova Reserva';
