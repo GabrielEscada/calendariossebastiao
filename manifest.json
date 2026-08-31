@@ -1,6 +1,7 @@
 {
-  "name": "Casa de São Sebastião",
-  "short_name": "Casa São Seb",
+  "name": "Reservas da casa de São Sebastião",
+  "short_name": "Reservas São Sebá",
+  "id": "/calendariossebastiao/",
   "description": "Sistema de reservas da Casa de São Sebastião",
   "start_url": "./",
   "scope": "./",
