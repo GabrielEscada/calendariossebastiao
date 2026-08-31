@@ -16,11 +16,12 @@
   <!-- ========================================= -->
   <meta name="theme-color" content="#1e90ff">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Casa São Sebastião">
   
   <!-- Link para o manifest.json -->
-  <link rel="manifest" href="https://script.google.com/macros/s/AKfycbz37mw-ccz0zGZGVGEY2gbqarYlcKi1BJlVpfF5l10O2DHg3tA-XmKZsYwiyaQgZyds4A/exec?manifest=1">
+  <link rel="manifest" href="./manifest.json">
   
   <!-- Ícones para iOS -->
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/GabrielEscada/calendariossebastiao/main/Imagens/Icone.png">
@@ -3473,7 +3474,7 @@ document.getElementById('closeBannerBtn').addEventListener('click', () => {
 // REGISTRAR SERVICE WORKER
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('?sw=1')
+    navigator.serviceWorker.register('./sw.js')
       .then(registration => {
         console.log('Service Worker registrado!');
       })
