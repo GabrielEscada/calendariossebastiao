@@ -863,6 +863,27 @@
     .pwa-installed.show {
       display: block;
     }
+.obrigatorio{
+  color:#ff4d5a;
+  font-weight:700;
+}
+
+.aviso-obrigatorio{
+  font-size:13px;
+  color:#bfc4cc;
+  margin:4px 0 14px;
+}
+
+    .aviso-ios{
+  margin-top:10px;
+  padding:12px 14px;
+  border-radius:10px;
+  background:#eef5ff;
+  color:#1f2937;
+  font-size:14px;
+  line-height:1.4;
+}
+    /* FIM — aviso de instalação iOS */
 
   </style>
 
@@ -1089,6 +1110,16 @@
   <div class="install-content">
     <div class="install-text">
       <h3>📱 Instale o App</h3>
+     <div
+  id="avisoIOS"
+  class="aviso-ios"
+  style="display:none;"
+>
+  <strong>🍎 Instalar no iPhone</strong><br>
+  Toque em <strong>Compartilhar</strong> e depois em
+  <strong>Adicionar à Tela de Início</strong>.
+       
+</div>
       <p>Adicione à tela inicial para acesso rápido</p>
     </div>
     <button id="installBtn" class="btn-install">Instalar</button>
@@ -1122,6 +1153,10 @@ onclick="load()">
     <h3 id="tituloModalReserva">
       📅 Nova Reserva
     </h3>
+    
+    <div class="aviso-obrigatorio">
+      * Campos obrigatórios
+    </div>
 
     <div
       class="alert"
@@ -1132,7 +1167,7 @@ onclick="load()">
     <div class="f">
 
       <label>
-        Entrada
+        Entrada<span class="obrigatorio">*</span>
       </label>
 
       <input
@@ -1145,7 +1180,7 @@ onclick="load()">
     <div class="f">
 
       <label>
-        Saída
+        Saída<span class="obrigatorio">*</span>
       </label>
 
       <input
@@ -1168,7 +1203,7 @@ onclick="load()">
     <div class="f">
 
       <label>
-        Pessoas
+        Pessoas<span class="obrigatorio">*</span>
       </label>
 
       <input
@@ -1184,7 +1219,7 @@ onclick="load()">
     <div class="f">
 
       <label>
-        Responsável
+        Responsável<span class="obrigatorio">*</span>
       </label>
 
       <input
@@ -1293,6 +1328,53 @@ onclick="load()">
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbz37mw-ccz0zGZGVGEY2gbqarYlcKi1BJlVpfF5l10O2DHg3tA-XmKZsYwiyaQgZyds4A/exec';
 
+  function ehIOS(){
+
+  return /iPhone|iPad|iPod/i.test(
+    navigator.userAgent
+  ) ||
+  (
+    navigator.platform === 'MacIntel' &&
+    navigator.maxTouchPoints > 1
+  );
+
+}
+
+  
+function mostrarInstrucaoIOS(){
+
+  if(!ehIOS()) return;
+
+
+  /*
+   * Se o site já estiver instalado
+   * como aplicativo, não precisamos
+   * mostrar a instrução novamente.
+   */
+
+  var instalado =
+    window.matchMedia(
+      '(display-mode: standalone)'
+    ).matches ||
+    window.navigator.standalone === true;
+
+
+  if(instalado) return;
+
+
+  var aviso =
+    document.getElementById(
+      'avisoIOS'
+    );
+
+
+  if(!aviso) return;
+
+
+  aviso.style.display =
+    'block';
+
+} 
 /*
  * O GitHub Pages e o Google Apps Script estão em domínios diferentes.
  * Por isso, as chamadas à API são feitas por JSONP, evitando o bloqueio
@@ -3596,7 +3678,7 @@ if(dx > 0){
 
 configurarSwipeCalendario();
 load();
-
+mostrarInstrucaoIOS();
 
 // ========================================= */
 // CÓDIGO PARA PWA - INSTALAÇÃO
