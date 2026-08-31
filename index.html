@@ -3059,164 +3059,6 @@ function salvarReserva(){
 
     load();
 
-    /********************************************************
- * GESTOS DE DESLIZAMENTO NO CELULAR
- *
- * Deslizar para a esquerda:
- *    próximo mês
- *
- * Deslizar para a direita:
- *    mês anterior
- ********************************************************/
-
-(function(){
-
-  var calendario =
-    document.getElementById('cal');
-
-
-  if(!calendario){
-    return;
-  }
-
-
-  var inicioX = null;
-  var inicioY = null;
-
-
-  calendario.addEventListener(
-    'touchstart',
-    function(e){
-
-      if(
-        !e.touches ||
-        !e.touches.length
-      ){
-        return;
-      }
-
-
-      inicioX =
-        e.touches[0].clientX;
-
-      inicioY =
-        e.touches[0].clientY;
-
-    },
-    {
-      passive: true
-    }
-  );
-
-
-  calendario.addEventListener(
-    'touchend',
-    function(e){
-
-      if(
-        inicioX === null ||
-        inicioY === null ||
-        !e.changedTouches ||
-        !e.changedTouches.length
-      ){
-
-        inicioX = null;
-        inicioY = null;
-
-        return;
-
-      }
-
-
-      var fimX =
-        e.changedTouches[0].clientX;
-
-      var fimY =
-        e.changedTouches[0].clientY;
-
-
-      var deslocamentoX =
-        fimX - inicioX;
-
-      var deslocamentoY =
-        fimY - inicioY;
-
-
-      /*
-       * Ignora movimentos pequenos.
-       */
-
-      var distanciaMinima = 50;
-
-
-      /*
-       * Só consideramos swipe horizontal.
-       */
-
-      if(
-        Math.abs(deslocamentoX) >=
-        distanciaMinima
-        &&
-        Math.abs(deslocamentoX) >
-        Math.abs(deslocamentoY)
-      ){
-
-        if(
-          deslocamentoX < 0
-        ){
-
-          /*
-           * Esquerda =
-           * próximo mês
-           */
-
-          mv(1);
-
-        }
-
-        else{
-
-          /*
-           * Direita =
-           * mês anterior
-           */
-
-          mv(-1);
-
-        }
-
-      }
-
-
-      inicioX = null;
-      inicioY = null;
-
-    },
-    {
-      passive: true
-    }
-  );
-
-})();
-
-  }
-
-  else{
-
-    alert(
-      '❌ ' +
-      (
-        resp &&
-        resp.msg
-          ? resp.msg
-          : 'Não foi possível salvar.'
-      )
-    );
-
-  }
-
-})
-
 .catch(function(err){
 
   btn.disabled =
@@ -3744,7 +3586,163 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+    /********************************************************
+ * GESTOS DE DESLIZAMENTO NO CELULAR
+ *
+ * Deslizar para a esquerda:
+ *    próximo mês
+ *
+ * Deslizar para a direita:
+ *    mês anterior
+ ********************************************************/
 
+(function(){
+
+  var calendario =
+    document.getElementById('cal');
+
+
+  if(!calendario){
+    return;
+  }
+
+
+  var inicioX = null;
+  var inicioY = null;
+
+
+  calendario.addEventListener(
+    'touchstart',
+    function(e){
+
+      if(
+        !e.touches ||
+        !e.touches.length
+      ){
+        return;
+      }
+
+
+      inicioX =
+        e.touches[0].clientX;
+
+      inicioY =
+        e.touches[0].clientY;
+
+    },
+    {
+      passive: true
+    }
+  );
+
+
+  calendario.addEventListener(
+    'touchend',
+    function(e){
+
+      if(
+        inicioX === null ||
+        inicioY === null ||
+        !e.changedTouches ||
+        !e.changedTouches.length
+      ){
+
+        inicioX = null;
+        inicioY = null;
+
+        return;
+
+      }
+
+
+      var fimX =
+        e.changedTouches[0].clientX;
+
+      var fimY =
+        e.changedTouches[0].clientY;
+
+
+      var deslocamentoX =
+        fimX - inicioX;
+
+      var deslocamentoY =
+        fimY - inicioY;
+
+
+      /*
+       * Ignora movimentos pequenos.
+       */
+
+      var distanciaMinima = 50;
+
+
+      /*
+       * Só consideramos swipe horizontal.
+       */
+
+      if(
+        Math.abs(deslocamentoX) >=
+        distanciaMinima
+        &&
+        Math.abs(deslocamentoX) >
+        Math.abs(deslocamentoY)
+      ){
+
+        if(
+          deslocamentoX < 0
+        ){
+
+          /*
+           * Esquerda =
+           * próximo mês
+           */
+
+          mv(1);
+
+        }
+
+        else{
+
+          /*
+           * Direita =
+           * mês anterior
+           */
+
+          mv(-1);
+
+        }
+
+      }
+
+
+      inicioX = null;
+      inicioY = null;
+
+    },
+    {
+      passive: true
+    }
+  );
+
+})();
+
+  }
+
+  else{
+
+    alert(
+      '❌ ' +
+      (
+        resp &&
+        resp.msg
+          ? resp.msg
+          : 'Não foi possível salvar.'
+      )
+    );
+
+  }
+
+})
 </script>
 
 </body>
