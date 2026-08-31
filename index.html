@@ -3715,30 +3715,29 @@ if ('serviceWorker' in navigator) {
         Math.abs(deslocamentoY)
       ){
 
-        if(
-          deslocamentoX < 0
-        ){
+      if(
+  deslocamentoX > 0
+){
 
-          /*
-           * Esquerda =
-           * próximo mês
-           */
+  /*
+   * Direita =
+   * próximo mês
+   */
 
-          mv(1);
+  mv(1);
 
-        }
+}
 
-        else{
+else{
 
-          /*
-           * Direita =
-           * mês anterior
-           */
+  /*
+   * Esquerda =
+   * mês anterior
+   */
 
-          mv(-1);
+  mv(-1);
 
-        }
-
+}
       }
 
 
@@ -3752,25 +3751,7 @@ if ('serviceWorker' in navigator) {
   );
 
 })();
-
-  }
-
-  else{
-
-    alert(
-      '❌ ' +
-      (
-        resp &&
-        resp.msg
-          ? resp.msg
-          : 'Não foi possível salvar.'
-      )
-    );
-
-  }
-
-})
-</script>
+ </script>
 
 </body>
 </html>
